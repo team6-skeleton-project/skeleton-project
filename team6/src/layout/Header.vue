@@ -1,8 +1,25 @@
 <template>
   <header class="header">
-    <h1>가계부</h1>
+    <h1 class="title">가계부</h1>
+
+    <img
+      src="@/assets/MyPageicon.png"
+      alt="사용자"
+      class="MyPageicon"
+      @click="goToMyPage"
+    />
   </header>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function goToMyPage() {
+  router.push({ name: 'MyPage' });
+}
+</script>
 
 <style scoped>
 .header {
@@ -14,9 +31,23 @@
 
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 16px;
 
-  background: #fff;
+  background: #f5f5f5;
   border-bottom: 1px solid #eee;
+  z-index: 1000;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.MyPageicon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 </style>
