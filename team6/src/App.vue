@@ -1,8 +1,10 @@
 <template>
   <Header></Header>
+  <BottomNav></BottomNav>
 </template>
 
 <script setup>
+import BottomNav from './layout/BottomNav.vue';
 import Header from './layout/Header.vue';
 </script>
 
