@@ -1,0 +1,116 @@
+{
+  "users": [
+    {
+      "id": "u001",
+      "email": "test@kb.com",
+      "password": "123",
+      "name": "김국민"
+    }
+  ],
+  "records": [
+    {
+      "id": "1001",
+      "userId": "u001",
+      "date": "2026-04-07",
+      "type": "expense",
+      "category": "식비",
+      "amount": 12000,
+      "memo": "점심 돈까스"
+    },
+    {
+      "id": "1002",
+      "userId": "u001",
+      "date": "2026-04-06",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 5000,
+      "memo": "택시"
+    },
+    {
+      "id": "1003",
+      "userId": "u001",
+      "date": "2026-04-05",
+      "type": "income",
+      "category": "월급",
+      "amount": 2000000,
+      "memo": "월급 입금"
+    }
+  ],
+  "incomeCategory": [
+    {
+      "id": "1",
+      "name": "월급"
+    },
+    {
+      "id": "2",
+      "name": "부수입"
+    },
+    {
+      "id": "3",
+      "name": "용돈"
+    },
+    {
+      "id": "4",
+      "name": "상여"
+    },
+    {
+      "id": "5",
+      "name": "금융소득"
+    },
+    {
+      "id": "6",
+      "name": "기타"
+    }
+  ],
+  "expenseCategory": [
+    {
+      "id": "1",
+      "name": "식비"
+    },
+    {
+      "id": "2",
+      "name": "교통/차량"
+    },
+    {
+      "id": "3",
+      "name": "문화생활"
+    },
+    {
+      "id": "4",
+      "name": "마트/편의점"
+    },
+    {
+      "id": "5",
+      "name": "패션/미용"
+    },
+    {
+      "id": "6",
+      "name": "생활용품"
+    },
+    {
+      "id": "7",
+      "name": "주거/통신"
+    },
+    {
+      "id": "8",
+      "name": "건강"
+    },
+    {
+      "id": "9",
+      "name": "교육"
+    },
+    {
+      "id": "10",
+      "name": "경조사/회비"
+    },
+    {
+      "id": "11",
+      "name": "부모님"
+    },
+    {
+      "id": "12",
+      "name": "기타"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
