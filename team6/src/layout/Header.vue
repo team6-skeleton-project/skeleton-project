@@ -17,7 +17,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function goToMyPage() {
-  router.push({ name: 'MyPage' });
+  router.push({ name: 'myPage' });
 }
 </script>
 
