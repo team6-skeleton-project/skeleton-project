@@ -1,14 +1,42 @@
 <template>
   <div class="bottom-nav">
     
-    <div class="nav-item">🏠</div>
+    <div class="nav-item">
+        <img 
+            src="@/assets/bottom_icon_home.png"
+            alt="home"
+            class="Home"
+            @click="goToHome"
+        />
+    </div>
 
     <div class="fab">+</div>
 
-    <div class="nav-item">📊</div>
+    <div class="nav-item">
+        <img 
+            src="@/assets/bottom_icon_graph.png"
+            alt="통계"
+            class="Chart"
+            @click="goToChart"
+        />
+    </div>
 
   </div>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function goToHome() {
+    router.push({ name: 'Home'});
+}
+
+function goToChart() {
+    router.push({ name: 'Chart'});
+}
+</script>
 
 <style scoped>
 .bottom-nav {
@@ -19,24 +47,40 @@
   height: 80px;
   background: #FFC107;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
+  padding: 0 40px;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
 }
 
 /* 좌우 아이콘 */
 .nav-item {
-  font-size: 24px;
-  color: white;
+    width: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-item img {
+    width: 31px;
+    height: 31px;
+    object-fit: contain;
+}
+
+.nav-item.active img {
+  filter: brightness(0) invert(1); /* 흰색 강조 느낌 */
+  transform: scale(1.2);
 }
 
 /* 가운데 + 버튼 */
 .fab {
   position: absolute;
-  top: -25px;
-  width: 60px;
-  height: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -30px;
+  width: 72px;
+  height: 72px;
   background: #fff;
   color: #FFC107;
   border-radius: 50%;
