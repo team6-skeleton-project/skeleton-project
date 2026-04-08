@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import MainLayout from '@/layout/MainLayout.vue';
 
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -50,11 +49,6 @@ const router = createRouter({
       path: '/myPage', //마이페이지 화면
       name: 'myPage',
       component: () => import('../views/MyPage.vue'),
-    },
-    {
-      path: '/mypage',
-      name: 'MyPage',
-      component: MyPage,
     },
   ],
 });
