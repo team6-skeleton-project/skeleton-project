@@ -1,7 +1,9 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2 class="title">가계부에 오신 것을<br />환영합니다</h2>
+      <div class="logo-wrapper">
+        <img src="@/assets/AppLogo.png" alt="앱 로고" class="app-logo" />
+      </div>
 
       <div class="input-group">
         <input
@@ -21,7 +23,6 @@
       </div>
 
       <button class="btn-login" @click="handleLogin">로그인</button>
-
       <div class="link-signup" @click="$router.push('/signup')">회원가입</div>
     </div>
   </div>
@@ -31,74 +32,75 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { useUserStore } from '@/stores/user';
 
 const email = ref('');
 const password = ref('');
 const router = useRouter();
-const userStore = useUserStore();
 
 const handleLogin = async () => {
   try {
-    // 1. 일단 모든 유저를 가져옵니다.
     const res = await axios.get('http://localhost:3000/users');
     const users = res.data;
-
-    // 2. 입력한 값과 일치하는 유저가 있는지 자바스크립트로 직접 찾습니다.
     const loggedInUser = users.find(
       (u) =>
         u.email === email.value.trim() && u.password === password.value.trim(),
     );
 
     if (loggedInUser) {
-      // 로그인 성공
       localStorage.setItem('user', JSON.stringify(loggedInUser));
       alert(`${loggedInUser.name}님, 환영합니다!`);
       router.push('/');
     } else {
-      // 로그인 실패
       alert('아이디 또는 비밀번호가 일치하지 않습니다.');
     }
   } catch (err) {
-    alert('서버 연결 실패! json-server가 3000포트에서 실행 중인지 확인하세요.');
+    alert('서버 확인 필요!');
   }
 };
 </script>
 
 <style scoped>
 .login-container {
+  /* 🌟 홀쭉이 탈출 핵심: 너비 고정 */
+  width: 100%;
+  max-width: 480px;
   height: 100vh;
   display: flex;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 40px; /* 좌우 여백을 넓혀서 안정감 부여 */
   background-color: #fff;
 }
+
 .login-box {
   width: 100%;
-  margin-bottom: 60px;
 }
-.title {
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 40px;
-  line-height: 1.4;
-  color: #333;
+
+.logo-wrapper {
+  margin-bottom: 50px;
+  display: flex;
+  justify-content: center;
 }
+
+.app-logo {
+  width: 180px; /* 로고 시원하게 키움 */
+  height: auto;
+}
+
 .input-group {
   margin-bottom: 16px;
 }
+
 .input-capsule {
   width: 100%;
-  height: 50px;
-  border-radius: 25px;
-  border: 1px solid #e0e0e0;
-  padding: 0 20px;
-  font-size: 15px;
+  height: 54px; /* 입력창 살짝 키움 */
+  border-radius: 27px;
+  border: 1px solid #eee;
+  padding: 0 24px;
+  font-size: 16px;
+  background-color: #fafafa;
   outline: none;
 }
-.input-capsule:focus {
-  border-color: #ffcc00;
-}
+
 .btn-login {
   width: 100%;
   height: 54px;
@@ -107,15 +109,15 @@ const handleLogin = async () => {
   background: #ffcc00;
   color: white;
   font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-.link-signup {
-  text-align: right;
-  color: #bdbdbd;
-  font-size: 13px;
+  font-size: 17px;
   margin-top: 20px;
+}
+
+.link-signup {
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+  margin-top: 25px;
   cursor: pointer;
 }
 </style>
