@@ -49,8 +49,26 @@ const router = createRouter({
       path: '/myPage', //마이페이지 화면
       name: 'myPage',
       component: () => import('../views/MyPage.vue'),
+      meta: { requiresAuth: true },
     },
   ],
+});
+
+// 네비게이션 가드 (로그인 체크)
+router.beforeEach((to) => {
+  const userRaw = localStorage.getItem('user');
+  const user = userRaw ? JSON.parse(userRaw) : null;
+
+  // 1. 로그인이 필요한 페이지인데 유저가 없는 경우
+  if (to.meta.requiresAuth && !user) {
+    alert('로그인이 필요합니다.');
+    return '/login';
+  }
+
+  // 2. 이미 로그인했는데 다시 로그인/회원가입으로 가려는 경우
+  if ((to.path === '/login' || to.path === '/signup') && user) {
+    return '/';
+  }
 });
 
 export default router;
