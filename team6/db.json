@@ -34,6 +34,42 @@
       "category": "월급",
       "amount": 2000000,
       "memo": "월급 입금"
+    },
+    {
+      "id": "1004",
+      "userId": "u001",
+      "date": "2026-04-06",
+      "type": "expense",
+      "category": "패션/미용",
+      "amount": 50000,
+      "memo": "옷구매"
+    },
+    {
+      "id": "1005",
+      "userId": "u001",
+      "date": "2026-03-13",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 7000,
+      "memo": "택시"
+    },
+    {
+      "id": "1006",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1007",
+      "userId": "u001",
+      "date": "2026-01-11",
+      "type": "expense",
+      "category": "패션/미용",
+      "amount": 100000,
+      "memo": "미용"
     }
   ],
   "incomeCategory": [
