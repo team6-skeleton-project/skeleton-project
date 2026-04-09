@@ -1,26 +1,24 @@
 <template>
   <div class="bottom-nav">
-    
     <div class="nav-item">
-        <img 
-            src="@/assets/bottom_icon_home.png"
-            alt="home"
-            class="Home"
-            @click="goToHome"
-        />
+      <img
+        src="@/assets/bottom_icon_home.png"
+        alt="home"
+        class="Home"
+        @click="goToHome"
+      />
     </div>
 
     <div class="fab">+</div>
 
     <div class="nav-item">
-        <img 
-            src="@/assets/bottom_icon_graph.png"
-            alt="통계"
-            class="Chart"
-            @click="goToChart"
-        />
+      <img
+        src="@/assets/bottom_icon_graph.png"
+        alt="통계"
+        class="Chart"
+        @click="goToChart"
+      />
     </div>
-
   </div>
 </template>
 
@@ -30,11 +28,11 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function goToHome() {
-    router.push({ name: 'Home'});
+  router.push({ name: 'Home' });
 }
 
 function goToChart() {
-    router.push({ name: 'Chart'});
+  router.push({ name: 'chart' });
 }
 </script>
 
@@ -43,9 +41,9 @@ function goToChart() {
   position: fixed;
   bottom: 0;
   width: 100%;
-  max-width: 390px;
+  max-width: 480px;
   height: 80px;
-  background: #FFC107;
+  background: #ffc107;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -56,16 +54,16 @@ function goToChart() {
 
 /* 좌우 아이콘 */
 .nav-item {
-    width: 48px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .nav-item img {
-    width: 31px;
-    height: 31px;
-    object-fit: contain;
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
 }
 
 .nav-item.active img {
@@ -82,13 +80,13 @@ function goToChart() {
   width: 72px;
   height: 72px;
   background: #fff;
-  color: #FFC107;
+  color: #ffc107;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 30px;
   font-weight: bold;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 </style>

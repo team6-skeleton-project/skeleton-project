@@ -1,5 +1,5 @@
 <template>
-  <div class="form-overlay">
+  <div class="form-overlay" @click.self="closeForm">
     <div class="form-card">
       <button class="close-btn" @click="closeForm">✕</button>
 
@@ -65,18 +65,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+// 🌟 defineEmits 추가
+import { ref, defineEmits } from 'vue';
 
-// 폼 데이터 상태 관리 (초기값 세팅)
 const formData = ref({
   amount: null,
-  date: '', // datetime-local 형식에 맞게 yyyy-mm-ddThh:mm 형태로 들어갑니다.
-  type: 'expense', // 기본값을 지출로 설정
+  date: '',
+  type: 'expense',
   category: '',
   memo: '',
 });
 
-// 저장 버튼 클릭 이벤트
+// 🌟 부모 컴포넌트(하단 바)에게 '나 닫아줘!'라고 신호를 보내기 위한 설정
+const emit = defineEmits(['close']);
+
 const saveRecord = () => {
   if (
     !formData.value.amount ||
@@ -87,38 +89,54 @@ const saveRecord = () => {
     return;
   }
   console.log('저장할 데이터:', formData.value);
-  // TODO: 여기서 Axios를 통해 json-server로 POST 요청을 보냅니다.
+
+  // TODO: Axios 통신 로직
+
+  // 🌟 저장이 완료되면 자동으로 모달 창 닫기
+  emit('close');
 };
 
-// 닫기 버튼 이벤트
 const closeForm = () => {
-  console.log('폼 닫기');
-  // TODO: vue-router를 이용해 이전 페이지로 돌아가거나 모달을 닫는 로직 추가
+  // 🌟 X 버튼이나 배경을 누르면 부모에게 'close' 신호 보내기
+  emit('close');
 };
 </script>
 
 <style scoped>
-/* 1. 배경 및 카드 레이아웃 */
+/* 🌟 1. 배경을 화면 전체에 고정(fixed)시키고 반투명하게 만듭니다. */
+/* 1. 까만 배경을 앱 사이즈에 딱 맞게 가두기 */
 .form-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+
+  /* 🌟 모바일 뼈대와 똑같이 가운데로 모아줍니다 */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+
+  width: 100%;
+  max-width: 480px; /* 🚨 중요: App.vue에서 설정한 앱 전체 너비 숫자와 똑같이 맞춰주세요! (예: 400px, 480px 등) */
+
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background-color: #f5f5f5; /* 시안의 배경색과 유사하게 */
-  min-height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
+/* 2. 도망간 X 버튼을 카드 안으로 다시 불러오기 */
 .form-card {
-  background-color: #f2efe9; /* 카드 고유의 베이지 톤 */
+  position: relative; /* 🌟 핵심! 이 한 줄이 있어야 내부의 X 버튼(absolute)이 도망가지 않습니다. */
+
+  width: 90%;
+  max-width: 340px;
+  background-color: #f2efe9;
   border-radius: 12px;
   padding: 30px 20px;
-  width: 100%;
-  max-width: 400px;
+  box-sizing: border-box;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative;
 }
-
-/* 2. 닫기 버튼 */
 .close-btn {
   position: absolute;
   top: 1px;
@@ -129,8 +147,6 @@ const closeForm = () => {
   color: #888;
   cursor: pointer;
 }
-
-/* 3. 공통 입력 폼 레이아웃 */
 .input-group {
   display: flex;
   align-items: center;
@@ -144,8 +160,6 @@ const closeForm = () => {
   font-weight: bold;
   color: #555;
 }
-
-/* 4. 금액 입력란 특화 스타일 */
 .amount-group {
   background-color: white;
   border-radius: 8px;
@@ -167,8 +181,6 @@ const closeForm = () => {
   color: #555;
   font-weight: bold;
 }
-
-/* 5. 일반 입력 필드 (일자, 카테고리, 메모) */
 .common-input {
   flex: 1;
   padding: 10px;
@@ -180,8 +192,6 @@ const closeForm = () => {
   height: 80px;
   resize: none;
 }
-
-/* 6. 수입/지출 토글 버튼 */
 .toggle-group {
   display: flex;
   flex: 1;
@@ -201,12 +211,10 @@ const closeForm = () => {
   font-weight: bold;
   box-shadow: inset 0 0 0 1px #555;
 }
-
-/* 7. 저장 버튼 */
 .submit-btn {
   width: 100%;
   padding: 15px;
-  background-color: #ffcc00; /* 시안의 노란색 */
+  background-color: #ffcc00;
   color: white;
   border: none;
   border-radius: 8px;

@@ -8,32 +8,34 @@
 </script>
 
 <style>
-/* 🌟 앱 전체에 공통으로 적용될 기본 스타일 (Reset CSS) */
-
-/* 1. 모든 요소의 여백을 없애고, 테두리 두께를 크기에 포함시킵니다 */
-* {
-  box-sizing: border-box;
+/* 1. 브라우저 기본 여백 없애기 */
+html,
+body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+
+  /* (선택) 앱 바깥쪽(PC 바탕) 배경을 어두운 회색으로 하면 모바일 앱이 더 돋보입니다! */
+  background-color: #e0e0e0;
 }
 
-/* 2. 바디 전체의 폰트와 배경색을 설정합니다 */
-body {
-  /* 가계부 앱에 어울리는 깔끔한 기본 폰트 적용 (없으면 기본 고딕) */
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-
-  /* 디자인 시안과 유사한 연한 회색/베이지색 톤 배경 */
-  background-color: #f5f5f5;
-  color: #333;
+/* 🌟 2. 여기가 핵심! 모든 Vue 컴포넌트를 담는 가장 큰 상자(#app)를 가운데 정렬시킵니다 */
+#app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center; /* 가로 정중앙 배치 */
 }
 
-/* 3. 링크(a 태그)의 밑줄을 없애고 색상을 통일합니다 */
+/* 아래는 기존에 작성해두신 a 태그, button 등 초기화 CSS 그대로 두시면 됩니다 */
+* {
+  box-sizing: border-box;
+}
 a {
   text-decoration: none;
   color: inherit;
 }
-
-/* 4. 버튼의 기본 윤곽선을 없애 깔끔하게 만듭니다 */
 button {
   outline: none;
   font-family: inherit;

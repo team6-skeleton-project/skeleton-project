@@ -26,7 +26,7 @@ function goToMyPage() {
   position: fixed;
   top: 0;
   width: 100%;
-  max-width: 390px;
+  max-width: 480px;
   height: 56px;
 
   display: flex;
