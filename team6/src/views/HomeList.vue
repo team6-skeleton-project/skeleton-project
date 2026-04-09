@@ -5,19 +5,20 @@
         <MonthSelector @changeMonth="handleMonthChange" />
         <SummaryBar :list="filteredList" />
       </div>
-      
+
       <div class="list-wrapper">
         <TransactionItem
           v-for="(item, i) in filteredList"
           :key="item.id"
           v-bind="item"
         />
-        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+
 import SummaryBar from '@/components/home/SummaryBar.vue'
 
 import { ref, computed, onMounted } from 'vue'
@@ -25,11 +26,11 @@ import axios from 'axios'
 
 import TransactionItem from '@/components/home/TransactionItem.vue'
 import MonthSelector from '@/components/home/MonthSelector.vue'
-
+  
 import foodIcon from '@/assets/category-food.svg'
 
 /* 🔥 선택된 날짜 */
-const selectedDate = ref(new Date())
+const selectedDate = ref(new Date());
 
 const list = ref([])
 
@@ -50,8 +51,8 @@ onMounted(() => {
 
 /* 🔥 월 필터링 */
 const filteredList = computed(() => {
-  const year = selectedDate.value.getFullYear()
-  const month = selectedDate.value.getMonth() + 1
+  const year = selectedDate.value.getFullYear();
+  const month = selectedDate.value.getMonth() + 1;
 
   return list.value.filter(item => {
     const d = new Date(item.date)
@@ -65,8 +66,8 @@ const filteredList = computed(() => {
 
 /* 🔥 MonthSelector에서 받은 값 */
 const handleMonthChange = (date) => {
-  selectedDate.value = date
-}
+  selectedDate.value = date;
+};
 </script>
 
 <style scoped>
@@ -87,7 +88,6 @@ const handleMonthChange = (date) => {
 .top {
   padding: 20px 0;
 }
-
 
 .list-wrapper {
   flex: 1;

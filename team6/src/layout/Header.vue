@@ -3,7 +3,7 @@
     <h1 class="title">가계부</h1>
 
     <img
-      src="@/assets/MyPageicon.png"
+      src="@/images/MyPageicon.png"
       alt="사용자"
       class="MyPageicon"
       @click="goToMyPage"
