@@ -3,6 +3,7 @@
     <div class="content">
       <div class="top">
         <MonthSelector @changeMonth="handleMonthChange" />
+        <SummaryBar :list="filteredList" />
       </div>
       
       <div class="list-wrapper">
@@ -17,6 +18,7 @@
 </template>
 
 <script setup>
+import SummaryBar from '@/components/home/SummaryBar.vue'
 import { ref, computed } from 'vue'
 import TransactionItem from '@/components/home/TransactionItem.vue'
 import foodIcon from '@/assets/category-food.svg'
