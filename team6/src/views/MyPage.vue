@@ -39,38 +39,61 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useUserStore } from '@/stores/user';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-const userStore = useUserStore();
 const router = useRouter();
-const user = userStore.user;
 
+// 🌟 Store 대신 직접 유저 정보를 관리합니다.
+const user = ref(null);
 const newPassword = ref('');
-const newNickname = ref(user?.nickname || '');
+const newNickname = ref('');
+
+onMounted(() => {
+  // 1. 로컬 스토리지에서 유저 정보를 가져옵니다.
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    user.value = JSON.parse(savedUser);
+    newNickname.value = user.value.name || ''; // db.json에 'name'으로 저장되어 있을 거예요.
+  } else {
+    // 유저 정보가 없으면 로그인으로 튕겨냅니다.
+    router.push('/login');
+  }
+});
 
 const save = async () => {
-  await axios.patch(`http://localhost:3000/users/${user.id}`, {
-    password: newPassword.value || user.password,
-    nickname: newNickname.value,
-  });
-  alert('수정되었습니다.');
+  try {
+    await axios.patch(`http://localhost:3000/users/${user.value.id}`, {
+      password: newPassword.value || user.value.password,
+      name: newNickname.value, // db.json 필드명에 맞춰 'name'으로 수정
+    });
+
+    // 로컬 스토리지 데이터도 갱신해줘야 화면에 즉시 반영됩니다.
+    const updatedUser = { ...user.value, name: newNickname.value };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    user.value = updatedUser;
+
+    alert('수정되었습니다.');
+  } catch (err) {
+    alert('수정 실패! 서버를 확인하세요.');
+  }
 };
 
 const logout = () => {
-  userStore.logout();
+  localStorage.removeItem('user'); // 로컬 스토리지 비우기
   router.push('/login');
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 그대로 유지 (생략) */
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
+  padding-top: 56px;
+} /* 헤더 가림 방지 */
 .header {
   height: 60px;
   display: flex;
