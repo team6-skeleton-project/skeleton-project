@@ -160,14 +160,13 @@ onMounted(async () => {
 
 <style scoped>
 .layout-content {
-  padding-top: 56px;
-  padding-bottom: 90px;
+  /* 배경은 부모 레이아웃(480px)을 꽉 채웁니다 */
   width: 100%;
-  max-width: 390px;
-  margin: 0 auto;
   min-height: 100vh;
   background-color: #fff;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 자식 요소들을 가로 중앙으로 정렬 */
 }
 
 .layout-content.has-detail {
@@ -175,7 +174,10 @@ onMounted(async () => {
 }
 
 .chart-container {
+  width: 100%;
+  max-width: 400px; /* 그래프가 퍼지지 않게 적당한 너비로 제한 */
   padding: 24px 16px;
+  box-sizing: border-box;
 }
 
 .month-nav {
@@ -204,8 +206,7 @@ onMounted(async () => {
 }
 
 .charts-wrapper {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
 }
 
 .guide-text {
@@ -250,6 +251,10 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   height: 200px;
+}
+canvas {
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 @keyframes slideUp {
