@@ -1,6 +1,12 @@
 <template>
   <header class="header">
-    <h1 class="title">가계부</h1>
+    <div class="logo-area" @click="$router.push('/')">
+      <img
+        src="@/assets/HeaderLogo.png"
+        alt="Don Touch 로고"
+        class="header-logo"
+      />
+    </div>
 
     <img
       src="@/images/MyPageicon.png"
@@ -34,14 +40,23 @@ function goToMyPage() {
   justify-content: space-between;
   padding: 0 16px;
 
-  background: #f5f5f5;
-  border-bottom: 1px solid #eee;
+  /* 로고 이미지 배경이 흰색일 경우를 대비해 배경색을 흰색으로 변경 추천 */
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
   z-index: 1000;
 }
 
-.title {
-  font-weight: 700;
-  font-size: 18px;
+.logo-area {
+  display: flex;
+  align-items: center;
+  cursor: pointer; /* 클릭 가능한 느낌 제공 */
+}
+
+.header-logo {
+  /* 🌟 헤더 높이(56px)에 맞춰 적절한 크기로 조절 */
+  height: 55px;
+  width: auto;
+  object-fit: contain;
 }
 
 .MyPageicon {
