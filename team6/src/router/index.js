@@ -15,6 +15,11 @@ const router = createRouter({
           component: () => import('../views/Home.vue'),
         },
         {
+          path: 'homelist', // 홈 화면 (목록)
+          name: 'homelist',
+          component: () => import('../views/HomeList.vue'),
+        },
+        {
           path: 'chart', // 통계 화면
           name: 'chart',
           component: () => import('../views/Chart.vue'),
