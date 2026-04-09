@@ -2,7 +2,7 @@
   <div class="bottom-nav">
     <div class="nav-item">
       <img
-        src="@/assets/bottom_icon_home.png"
+        src="@/images/bottom_icon_home.png"
         alt="home"
         class="Home"
         @click="goToHome"
@@ -13,7 +13,7 @@
 
     <div class="nav-item">
       <img
-        src="@/assets/bottom_icon_graph.png"
+        src="@/images/bottom_icon_graph.png"
         alt="통계"
         class="Chart"
         @click="goToChart"
@@ -47,7 +47,10 @@ function goToChart() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 40px;
+
+  /* 양옆 패딩을 40px에서 80px~100px 정도로 늘려보세요 */
+  padding: 0 80px;
+
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
 }
@@ -61,8 +64,8 @@ function goToChart() {
 }
 
 .nav-item img {
-  width: 31px;
-  height: 31px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -82,11 +85,20 @@ function goToChart() {
   background: #fff;
   color: #ffc107;
   border-radius: 50%;
+
+  /* 정렬 핵심 */
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
+
+  /* 폰트 설정 */
+  font-size: 45px;
   font-weight: bold;
+
+  /* 중요: 중앙 정렬 보정 */
+  line-height: 0; /* 텍스트 박스의 기본 높이를 제거 */
+  padding-top: 6px; /* 폰트 특성상 위로 쏠린 기호를 아래로 미세하게 밀어줌 */
+
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 </style>
