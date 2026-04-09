@@ -1,6 +1,5 @@
 <template>
   <div class="container">
-
     <div class="content">
       <TransactionItem
         v-for="(item, i) in list"
@@ -8,7 +7,6 @@
         v-bind="item"
       />
     </div>
-
   </div>
 </template>
 
