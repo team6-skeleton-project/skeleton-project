@@ -24,14 +24,20 @@
           <button
             type="button"
             :class="{ active: formData.type === 'income' }"
-            @click="formData.type = 'income'"
+            @click="
+              formData.type = 'income';
+              formData.category = '';
+            "
           >
             수입
           </button>
           <button
             type="button"
             :class="{ active: formData.type === 'expense' }"
-            @click="formData.type = 'expense'"
+            @click="
+              formData.type = 'expense';
+              formData.category = '';
+            "
           >
             지출
           </button>
@@ -68,16 +74,24 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+// ✨ 수정 2: watch 임포트 추가
+import { ref, defineEmits, defineProps, watch } from 'vue';
 
-// 폼 데이터 상태 관리
-const formData = ref({
-  amount: null,
-  date: '',
-  type: 'expense',
-  category: '',
-  memo: '',
+const props = defineProps({
+  record: { type: Object, required: true },
 });
+
+// 폼 데이터 상태 관리 (초기값 세팅)
+const formData = ref({ ...props.record });
+
+// ✨ 수정 3: props.record가 변경될 때마다 폼 데이터 동기화 (안전장치)
+watch(
+  () => props.record,
+  (newVal) => {
+    formData.value = { ...newVal };
+  },
+  { deep: true },
+);
 
 const emit = defineEmits(['close']);
 
@@ -99,7 +113,7 @@ const saveRecord = () => {
 // 삭제 버튼 클릭 이벤트
 const deleteRecord = () => {
   if (confirm('정말로 이 내역을 삭제하시겠습니까?')) {
-    console.log('삭제 진행');
+    console.log('삭제 진행 ID:', formData.value.id);
     // TODO: 여기서 Axios를 통해 json-server로 DELETE 요청을 보냅니다.
     emit('close');
   }
@@ -121,10 +135,7 @@ const closeForm = () => {
   right: 0;
   margin: 0 auto;
   width: 100%;
-
-  /* 만약 MainLayout 크기를 100%로 늘리셨다면 이 줄을 지우셔도 됩니다 */
   max-width: 480px;
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -146,10 +157,10 @@ const closeForm = () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* 3. 닫기 버튼 (위치 안정화) */
+/* 3. 닫기 버튼 */
 .close-btn {
   position: absolute;
-  top: 1px; /* 1px에서 15px로 내려서 더 자연스럽게 맞췄습니다 */
+  top: 1px;
   right: 15px;
   background: none;
   border: none;
@@ -233,12 +244,12 @@ const closeForm = () => {
 /* 🌟 하단 버튼 그룹 스타일 (수정/삭제 나란히 배치) */
 .button-group {
   display: flex;
-  gap: 10px; /* 두 버튼 사이의 간격 */
+  gap: 10px;
   margin-top: 10px;
 }
 
 .submit-btn {
-  flex: 2; /* 수정 버튼을 더 넓게 (가로 비율 2) */
+  flex: 2;
   padding: 15px;
   background-color: #ffcc00;
   color: white;
@@ -250,9 +261,9 @@ const closeForm = () => {
 }
 
 .delete-btn {
-  flex: 1; /* 삭제 버튼은 조금 좁게 (가로 비율 1) */
+  flex: 1;
   padding: 15px;
-  background-color: #ff4d4f; /* 삭제 경고용 빨간색 */
+  background-color: #ff4d4f;
   color: white;
   border: none;
   border-radius: 8px;
