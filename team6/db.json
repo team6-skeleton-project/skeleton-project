@@ -10,6 +10,7 @@
   "records": [
     {
       "id": "1001",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-04-07",
       "type": "expense",
@@ -19,6 +20,7 @@
     },
     {
       "id": "1002",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-04-06",
       "type": "expense",
@@ -28,6 +30,7 @@
     },
     {
       "id": "1003",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-04-05",
       "type": "income",
@@ -37,6 +40,7 @@
     },
     {
       "id": "1004",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-04-06",
       "type": "expense",
@@ -46,6 +50,7 @@
     },
     {
       "id": "1005",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-03-13",
       "type": "expense",
@@ -55,6 +60,7 @@
     },
     {
       "id": "1006",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-02-20",
       "type": "expense",
@@ -64,6 +70,77 @@
     },
     {
       "id": "1007",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1008",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1009",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1010",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1011",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1012",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1013",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-02-20",
+      "type": "expense",
+      "category": "교통/차량",
+      "amount": 13000,
+      "memo": "택시"
+    },
+    {
+      "id": "1014",
+      "title": "맥도날드",
       "userId": "u001",
       "date": "2026-01-11",
       "type": "expense",

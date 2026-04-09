@@ -18,155 +18,51 @@
 </template>
 
 <script setup>
-import SummaryBar from '@/components/home/SummaryBar.vue';
-import { ref, computed } from 'vue';
-import TransactionItem from '@/components/home/TransactionItem.vue';
-import foodIcon from '@/images/category-food.svg';
-import MonthSelector from '@/components/home/MonthSelector.vue';
+
+import SummaryBar from '@/components/home/SummaryBar.vue'
+
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+import TransactionItem from '@/components/home/TransactionItem.vue'
+import MonthSelector from '@/components/home/MonthSelector.vue'
+  
+import foodIcon from '@/assets/category-food.svg'
 
 /* 🔥 선택된 날짜 */
 const selectedDate = ref(new Date());
 
-/* TODO: 더미 데이터 -> db 데이터로 바꾸기 */
-const list = [
-  {
-    id: '1001',
-    title: '돈까스',
-    date: '2026-04-07',
-    type: 'expense',
-    category: '식비',
-    amount: 12000,
-    memo: '점심 돈까스',
-  },
-  {
-    id: '1002',
-    title: '돈까스',
-    date: '2026-04-06',
-    type: 'expense',
-    category: '교통/차량',
-    amount: 5000,
-    memo: '택시',
-  },
-  {
-    id: '1003',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1004',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1005',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1006',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1007',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1008',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1009',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1010',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1011',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1012',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1013',
-    title: '돈까스',
-    date: '2026-03-05',
-    type: 'income',
-    category: '월급',
-    amount: 2000000,
-    memo: '월급 입금',
-  },
-  {
-    id: '1004',
-    title: '돈까스',
-    date: '2026-04-06',
-    type: 'expense',
-    category: '패션/미용',
-    amount: 50000,
-    memo: '옷구매',
-  },
-];
+const list = ref([])
+
+/* 🔥 서버에서 데이터 가져오기 */
+const fetchData = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/records')
+    list.value = res.data
+  } catch (e) {
+    console.error("데이터 가져오기 오류 : ", e);
+  }
+}
+
+/* 🔥 컴포넌트 실행될 때 호출 */
+onMounted(() => {
+  fetchData()
+})
 
 /* 🔥 월 필터링 */
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
 
-  return list.filter((item) => {
-    const d = new Date(item.date);
-    return d.getFullYear() === year && d.getMonth() + 1 === month;
-  });
-});
+  return list.value.filter(item => {
+    const d = new Date(item.date)
+    return (
+      item.userId === 'u001' && // TODO: 사용자 하드코딩 수정 필요
+      d.getFullYear() === year &&
+      d.getMonth() + 1 === month
+    )
+  })
+})
 
 /* 🔥 MonthSelector에서 받은 값 */
 const handleMonthChange = (date) => {
