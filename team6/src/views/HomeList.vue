@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+<<<<<<< Updated upstream
 import SummaryBar from '@/components/home/SummaryBar.vue'
 
 import { ref, computed, onMounted } from 'vue'
@@ -26,6 +27,13 @@ import axios from 'axios'
 import TransactionItem from '@/components/home/TransactionItem.vue'
 import MonthSelector from '@/components/home/MonthSelector.vue'
 import foodIcon from '@/assets/category-food.svg'
+=======
+import SummaryBar from '@/components/home/SummaryBar.vue';
+import { ref, computed } from 'vue';
+import TransactionItem from '@/components/home/TransactionItem.vue';
+// import foodIcon from '@/images/category-food.svg';
+import MonthSelector from '@/components/home/MonthSelector.vue';
+>>>>>>> Stashed changes
 
 /* 🔥 선택된 날짜 */
 const selectedDate = ref(new Date());
