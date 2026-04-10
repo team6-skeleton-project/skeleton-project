@@ -3,14 +3,43 @@
     <div class="form-card">
       <button class="close-btn" @click="closeForm">✕</button>
 
-      <div class="input-group amount-group">
+      <div class="input-group amount-group-container">
+        <div class="amount-input-wrapper">
+          <input
+            type="text"
+            ref="amountInputRef"
+            :value="displayAmount"
+            @input="handleAmountInput"
+            placeholder="0"
+            class="amount-input"
+            inputmode="numeric"
+          />
+          <span
+            class="currency"
+            @click="focusAmountInput"
+            style="cursor: pointer"
+            >원 ✏️</span
+          >
+        </div>
+
+        <div class="quick-amount-btns">
+          <button type="button" @click="addAmount(10000)">+1만</button>
+          <button type="button" @click="addAmount(50000)">+5만</button>
+          <button type="button" @click="addAmount(100000)">+10만</button>
+          <button type="button" class="reset-btn" @click="resetAmount">
+            초기화
+          </button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>제목</label>
         <input
-          type="number"
-          v-model="formData.amount"
-          placeholder="0"
-          class="amount-input"
+          type="text"
+          v-model="formData.title"
+          placeholder="내역 제목을 입력하세요"
+          class="common-input"
         />
-        <span class="currency">원 ✏️</span>
       </div>
 
       <div class="input-group">
@@ -110,24 +139,25 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-// 폼 데이터 및 상태 초기화
+// --- 상태 관리 ---
 const formData = ref({ ...props.record });
+const displayAmount = ref('');
+const isSheetOpen = ref(false);
 const incomeCategories = ref([]);
 const expenseCategories = ref([]);
-const isSheetOpen = ref(false);
+const amountInputRef = ref(null);
 
-/**
- * 이미지 파일명에 따른 동적 URL 생성
- */
+// --- 유틸리티 및 데이터 로직 ---
+
+// 이미지 URL 생성 (에러 해결용)
 const getImageUrl = (fileName) => {
   if (!fileName) return '';
   return new URL(`../images/${fileName}`, import.meta.url).href;
 };
 
-/**
- * 선택된 카테고리의 아이콘 경로 매칭
- */
+// 선택된 카테고리 아이콘 반환 (에러 해결용)
 const getSelectedCategoryIcon = () => {
+  if (!formData.value.category) return '';
   const list =
     formData.value.type === 'income'
       ? incomeCategories.value
@@ -136,25 +166,44 @@ const getSelectedCategoryIcon = () => {
   return target ? getImageUrl(target.icon) : '';
 };
 
-/**
- * 분류(수입/지출) 변경 시 카테고리 초기화
- */
+// 숫자 포맷팅 (콤마)
+const formatNumber = (val) => {
+  if (!val && val !== 0) return '';
+  return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+// 연필 클릭 시 포커스
+const focusAmountInput = () => {
+  if (amountInputRef.value) amountInputRef.value.focus();
+};
+
+// 금액 입력 핸들러
+const handleAmountInput = (e) => {
+  const rawValue = e.target.value.replace(/\D/g, '');
+  formData.value.amount = rawValue ? Number(rawValue) : null;
+  displayAmount.value = formatNumber(rawValue);
+};
+
+const addAmount = (val) => {
+  formData.value.amount = (formData.value.amount || 0) + val;
+  displayAmount.value = formatNumber(formData.value.amount);
+};
+
+const resetAmount = () => {
+  formData.value.amount = null;
+  displayAmount.value = '';
+};
+
 const changeType = (type) => {
   formData.value.type = type;
   formData.value.category = '';
 };
 
-/**
- * 카테고리 선택 및 바텀시트 닫기
- */
 const selectCategory = (name) => {
   formData.value.category = name;
   isSheetOpen.value = false;
 };
 
-/**
- * 초기 카테고리 데이터 로딩 (수입/지출 동시 요청)
- */
 const fetchCategories = async () => {
   try {
     const [incRes, expRes] = await Promise.all([
@@ -168,38 +217,38 @@ const fetchCategories = async () => {
   }
 };
 
-/**
- * 현재 유형(type)에 따라 바텀시트에 표시할 리스트 계산
- */
 const currentCategoryList = computed(() => {
   return formData.value.type === 'income'
     ? incomeCategories.value
     : expenseCategories.value;
 });
 
-/**
- * props로 넘어온 원본 데이터 변경 감지 시 폼 동기화
- */
+// --- 감시자 및 초기화 ---
 watch(
   () => props.record,
   (newVal) => {
     formData.value = { ...newVal };
+    displayAmount.value = formatNumber(newVal.amount);
   },
   { deep: true },
 );
 
-onMounted(() => fetchCategories());
+onMounted(async () => {
+  await fetchCategories();
+  if (formData.value.amount !== null) {
+    displayAmount.value = formatNumber(formData.value.amount);
+  }
+});
 
-/**
- * 수정사항 저장 (PUT 요청)
- */
+// 수정 저장
 const saveRecord = async () => {
   if (
+    !formData.value.title ||
     !formData.value.amount ||
     !formData.value.date ||
     !formData.value.category
   ) {
-    alert('필수 항목을 모두 입력해주세요!');
+    alert('필수 항목(제목, 금액, 일자, 카테고리)을 모두 입력해주세요!');
     return;
   }
   try {
@@ -214,9 +263,7 @@ const saveRecord = async () => {
   }
 };
 
-/**
- * 내역 삭제 (DELETE 요청)
- */
+// 삭제
 const deleteRecord = async () => {
   if (confirm('삭제하시겠습니까?')) {
     try {
@@ -233,13 +280,13 @@ const closeForm = () => emit('close');
 </script>
 
 <style scoped>
-/* 모달 레이아웃 및 카드 스타일 */
+/* 1. 기본 레이아웃 */
 .form-overlay {
   position: fixed;
   top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
   margin: 0 auto;
   width: 100%;
   max-width: 480px;
@@ -249,104 +296,172 @@ const closeForm = () => emit('close');
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
+
 .form-card {
   position: relative;
   width: 90%;
-  max-width: 340px;
+  max-width: 360px;
   background-color: #f2efe9;
-  border-radius: 12px;
-  padding: 30px 20px;
+  border-radius: 20px;
+  padding: 35px 20px 25px;
   box-sizing: border-box;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
+
 .close-btn {
   position: absolute;
   top: 1px;
   right: 15px;
   background: none;
   border: none;
-  font-size: 20px;
-  color: #888;
+  font-size: 22px;
+  color: #aaa;
   cursor: pointer;
 }
 
-/* 입력 필드 공통 스타일 */
+/* 2. 금액 입력 UI */
+.amount-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.amount-input-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 16px;
+  border: 2px solid #eee;
+  padding: 15px 20px;
+  transition: all 0.2s ease;
+}
+
+.amount-input-wrapper:focus-within {
+  border-color: #ffcc00;
+  box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.1);
+}
+
+.amount-input {
+  border: none;
+  font-size: 26px;
+  font-weight: 800;
+  color: #333;
+  outline: none;
+  width: 75%;
+  background: transparent;
+}
+
+.currency {
+  font-size: 18px;
+  color: #555;
+  font-weight: bold;
+}
+
+.quick-amount-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-amount-btns button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-amount-btns button:hover {
+  border-color: #ffcc00;
+  background: #fffdf0;
+  color: #333;
+}
+
+.quick-amount-btns .reset-btn {
+  background: #fff5f5;
+  color: #ff4d4f;
+  border-color: #ffe3e3;
+  margin-left: auto;
+}
+
+/* 3. 공통 입력 요소 */
 .input-group {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 .input-group label {
-  width: 70px;
+  width: 75px;
   font-weight: bold;
-  color: #555;
+  color: #666;
+  font-size: 14px;
 }
-
-.amount-group {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 30px;
-  justify-content: space-between;
-}
-.amount-input {
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  width: 70%;
-  outline: none;
-}
-
+.common-input,
 .category-selector-box {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+}
+.category-selector-box {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   cursor: pointer;
+  color: #333;
+  align-items: center;
+}
+
+/* 선택된 카테고리 아이콘 스타일 */
+.selected-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .mini-icon {
   width: 22px;
   height: 22px;
   object-fit: contain;
-  margin-right: 8px;
-  vertical-align: middle;
 }
 
-.common-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+.placeholder {
+  color: #aaa;
 }
 .memo-input {
-  height: 80px;
+  height: 70px;
   resize: none;
 }
 
+/* 4. 토글 및 버튼 그룹 */
 .toggle-group {
   display: flex;
   flex: 1;
-  gap: 10px;
+  gap: 8px;
 }
 .toggle-group button {
   flex: 1;
   padding: 10px;
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 10px;
+  font-weight: bold;
+  color: #888;
   cursor: pointer;
 }
 .toggle-group button.active {
+  background: #555;
+  color: #fff;
   border-color: #555;
-  font-weight: bold;
-  box-shadow: inset 0 0 0 1px #555;
 }
 
-/* 하단 버튼 스타일 */
 .button-group {
   display: flex;
   gap: 10px;
@@ -354,46 +469,50 @@ const closeForm = () => emit('close');
 }
 .submit-btn {
   flex: 2;
-  padding: 15px;
-  background: #ffcc00;
-  color: white;
+  padding: 16px;
+  background-color: #ffcc00;
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 800;
   cursor: pointer;
 }
 .delete-btn {
   flex: 1;
-  padding: 15px;
-  background: #ff4d4f;
-  color: white;
+  padding: 16px;
+  background-color: #ff4d4f;
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
 }
 
-/* 바텀 시트 UI 및 애니메이션 */
+/* 5. 바텀 시트 및 애니메이션 */
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 2000;
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  z-index: 2000;
+  transition: opacity 0.3s ease;
 }
 .bottom-sheet-content {
   width: 100%;
   max-width: 480px;
-  background: white;
+  background-color: #ffffff;
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   padding: 20px 20px 40px;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-out;
 }
 .sheet-header {
   display: flex;
@@ -408,7 +527,6 @@ const closeForm = () => emit('close');
   border-radius: 2px;
   margin-bottom: 15px;
 }
-
 .category-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -422,17 +540,17 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 .cat-icon-circle {
-  width: 54px;
-  height: 54px;
-  background: #f5f5f5;
+  width: 50px;
+  height: 50px;
+  background: #f8f8f8;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .cat-img {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 .category-item.active .cat-icon-circle {
@@ -443,14 +561,7 @@ const closeForm = () => emit('close');
   color: #666;
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: opacity 0.3s ease;
-}
-.slide-up-enter-active .bottom-sheet-content,
-.slide-up-leave-active .bottom-sheet-content {
-  transition: transform 0.3s ease-out;
-}
+/* 애니메이션 */
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
@@ -458,5 +569,13 @@ const closeForm = () => emit('close');
 .slide-up-enter-from .bottom-sheet-content,
 .slide-up-leave-to .bottom-sheet-content {
   transform: translateY(100%);
+}
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: opacity 0.3s ease;
+}
+.slide-up-enter-active .bottom-sheet-content,
+.slide-up-leave-active .bottom-sheet-content {
+  transition: transform 0.3s ease-out;
 }
 </style>
