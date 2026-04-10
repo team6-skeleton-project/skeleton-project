@@ -3,8 +3,16 @@
     {
       "id": "u001",
       "email": "test@kb.com",
+      "password": "9999",
+      "name": "우상김"
+    },
+    {
+      "email": "123@kb.com",
       "password": "1234",
-      "name": "감자"
+      "name": "안녕",
+      "birth": "1234.56.78",
+      "nickname": "ㅋㅋㅋㅋ",
+      "id": "i2W2uODhiPQ"
     }
   ],
   "records": [
@@ -135,7 +143,7 @@
       "date": "2026-02-20",
       "type": "expense",
       "category": "교통/차량",
-      "amount": 13000,
+      "amount": 17000,
       "memo": "택시"
     },
     {
@@ -147,6 +155,36 @@
       "category": "패션/미용",
       "amount": 100000,
       "memo": "미용"
+    },
+    {
+      "id": "1015",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-04-05",
+      "type": "expense",
+      "category": "식비",
+      "amount": 100000,
+      "memo": "식비"
+    },
+    {
+      "id": "1016",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-04-07",
+      "type": "income",
+      "category": "용돈",
+      "amount": 100000,
+      "memo": "용돈"
+    },
+    {
+      "id": "1017",
+      "title": "맥도날드",
+      "userId": "u001",
+      "date": "2026-04-07",
+      "type": "income",
+      "category": "기타",
+      "amount": 5000,
+      "memo": "복권"
     }
   ],
   "incomeCategory": [

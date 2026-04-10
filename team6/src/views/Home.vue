@@ -1,24 +1,26 @@
 <template>
   <div class="home-container">
-    <div class="header-section">
-      <div class="view-toggle">
-        <button
-          :class="{ active: viewMode === 'list' }"
-          @click="viewMode = 'list'"
-        >
-          목록
-        </button>
-        <button
-          :class="{ active: viewMode === 'calendar' }"
-          @click="viewMode = 'calendar'"
-        >
-          달력
-        </button>
+    <div class="fixed-header">
+      <div class="header-section">
+        <div class="view-toggle">
+          <button
+            :class="{ active: viewMode === 'list' }"
+            @click="viewMode = 'list'"
+          >
+            목록
+          </button>
+          <button
+            :class="{ active: viewMode === 'calendar' }"
+            @click="viewMode = 'calendar'"
+          >
+            달력
+          </button>
+        </div>
+        <MonthSelector @changeMonth="handleMonthChange" />
       </div>
-      <MonthSelector @changeMonth="handleMonthChange" />
-    </div>
 
-    <SummaryBar :list="filteredList" />
+      <SummaryBar :list="filteredList" />
+    </div>
 
     <div class="content-body">
       <div v-if="viewMode === 'calendar'" class="calendar-view">
@@ -27,6 +29,7 @@
             v-for="day in ['일', '월', '화', '수', '목', '금', '토']"
             :key="day"
             class="weekday"
+            :class="{ sunday: day === '일', saturday: day === '토' }"
           >
             {{ day }}
           </div>
@@ -37,13 +40,22 @@
             :key="'empty-' + empty"
             class="day-cell empty"
           ></div>
-          <div v-for="day in calendarDays" :key="day.date" class="day-cell">
-            <span class="date-num" :class="{ today: isToday(day.fullDate) }">{{
-              day.date
-            }}</span>
-            <div class="dots">
-              <span v-if="day.hasExpense" class="dot expense-dot"></span>
-              <span v-if="day.hasIncome" class="dot income-dot"></span>
+          <div
+            v-for="day in calendarDays"
+            :key="day.date"
+            class="day-cell"
+            @click="showDailyDetail(day)"
+          >
+            <span class="date-num" :class="{ today: isToday(day.fullDate) }">
+              {{ day.date }}
+            </span>
+            <div class="day-amounts">
+              <span v-if="day.incomeSum > 0" class="amt income">
+                {{ day.incomeSum.toLocaleString() }}
+              </span>
+              <span v-if="day.expenseSum > 0" class="amt expense">
+                {{ day.expenseSum.toLocaleString() }}
+              </span>
             </div>
           </div>
         </div>
@@ -63,6 +75,31 @@
       </div>
     </div>
 
+    <div
+      v-if="isDetailOpen"
+      class="bottom-sheet-overlay"
+      @click.self="isDetailOpen = false"
+    >
+      <div class="bottom-sheet">
+        <div class="handle"></div>
+        <div class="sheet-header">
+          <h3>{{ clickedDateText }} 내역</h3>
+          <button class="close-btn" @click="isDetailOpen = false">닫기</button>
+        </div>
+        <div class="sheet-content">
+          <div v-if="selectedDateRecords.length === 0" class="empty-msg">
+            내역이 없습니다.
+          </div>
+          <TransactionItem
+            v-for="item in selectedDateRecords"
+            :key="item.id"
+            v-bind="item"
+            @click="openEditModal(item)"
+          />
+        </div>
+      </div>
+    </div>
+
     <EditModal
       v-if="isEditModalOpen"
       :record="selectedRecord"
@@ -75,7 +112,6 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// 컴포넌트 임포트
 import MonthSelector from '@/components/home/MonthSelector.vue';
 import SummaryBar from '@/components/home/SummaryBar.vue';
 import TransactionItem from '@/components/home/TransactionItem.vue';
@@ -84,18 +120,24 @@ import EditModal from './Edit.vue';
 // --- 상태 관리 ---
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
-const list = ref([]); // 전체 레코드 저장
 
+const records = ref([]);
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 
-// --- 데이터 가져오기 ---
-const fetchData = async () => {
+// --- 바텀 시트 상태 ---
+const isDetailOpen = ref(false);
+const clickedDateText = ref('');
+const selectedDateRecords = ref([]);
+
+// --- 데이터 통신 ---
+const fetchRecords = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/records');
-    list.value = res.data;
-  } catch (e) {
-    console.error('데이터 가져오기 오류:', e);
+    const response = await axios.get('http://localhost:3000/records');
+    records.value = response.data;
+  } catch (error) {
+    console.error('데이터 통신 실패:', error);
+
   }
 };
 
@@ -103,12 +145,24 @@ onMounted(() => {
   fetchData();
 });
 
-// --- 월 변경 처리 ---
+
+const showDailyDetail = (day) => {
+  clickedDateText.value = day.fullDate;
+  // 전체 데이터 중 해당 날짜 데이터만 필터링
+  selectedDateRecords.value = records.value.filter(
+    (r) => r.date === day.fullDate,
+  );
+  isDetailOpen.value = true;
+};
+
 const handleMonthChange = (date) => {
   selectedDate.value = date;
 };
 
+
 // --- 필터링 로직 (목록과 달력 공통 사용) ---
+
+
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
@@ -124,7 +178,9 @@ const filteredList = computed(() => {
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
+
 // --- 달력 계산 로직 ---
+
 const emptyDays = computed(() => {
   return new Date(
     selectedDate.value.getFullYear(),
@@ -141,12 +197,21 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    const dailyRecords = filteredList.value.filter((r) => r.date === dateStr);
+
+    const dailyRecords = records.value.filter((r) => r.date === dateStr);
+
+    const incomeSum = dailyRecords
+      .filter((r) => r.type === 'income')
+      .reduce((sum, r) => sum + r.amount, 0);
+
+    const expenseSum = dailyRecords
+      .filter((r) => r.type === 'expense')
+      .reduce((sum, r) => sum + r.amount, 0);
     days.push({
       date: i,
       fullDate: dateStr,
-      hasExpense: dailyRecords.some((r) => r.type === 'expense'),
-      hasIncome: dailyRecords.some((r) => r.type === 'income'),
+      incomeSum,
+      expenseSum,
     });
   }
   return days;
@@ -155,7 +220,6 @@ const calendarDays = computed(() => {
 const isToday = (dateString) =>
   dateString === new Date().toISOString().split('T')[0];
 
-// --- 모달 제어 ---
 const openEditModal = (item) => {
   selectedRecord.value = item;
   isEditModalOpen.value = true;
@@ -163,18 +227,37 @@ const openEditModal = (item) => {
 
 const handleModalClose = () => {
   isEditModalOpen.value = false;
-  fetchData(); // 데이터 새로고침
+
+  fetchRecords();
+  // 바텀 시트가 열려있다면 내부 데이터도 갱신
+  if (isDetailOpen.value) {
+    selectedDateRecords.value = records.value.filter(
+      (r) => r.date === clickedDateText.value,
+    );
+  }
+
 };
 </script>
 
 <style scoped>
 /* 기존 스타일 유지 (생략) */
 .home-container {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
+  width: 100%;
+  height: calc(100vh - 56px - 80px);
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
+  overflow: hidden;
 }
+
+.fixed-header {
+  flex-shrink: 0;
+  background-color: #fff;
+  z-index: 10;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+
 .header-section {
   position: relative;
   padding-top: 20px;
@@ -187,7 +270,7 @@ const handleModalClose = () => {
   background-color: #f0ece1;
   border-radius: 20px;
   overflow: hidden;
-  z-index: 10;
+  z-index: 11;
 }
 .view-toggle button {
   padding: 5px 12px;
@@ -202,66 +285,173 @@ const handleModalClose = () => {
   background-color: #e6dfcf;
   color: #333;
 }
+
+.content-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.content-body::-webkit-scrollbar {
+  display: none;
+}
+
 .calendar-view {
-  padding: 20px;
+  padding: 20px 5px;
 }
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 12px;
-  color: #aaa;
+  font-size: 13px;
+  font-weight: bold;
+  color: #bbb;
   margin-bottom: 15px;
 }
+.weekday.sunday {
+  color: #ec407a;
+}
+.weekday.saturday {
+  color: #54a0ff;
+}
+
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  row-gap: 20px;
+  row-gap: 2px;
+  column-gap: 2px;
 }
+
 .day-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 45px;
+  min-height: 95px;
+  padding-top: 8px;
+  border-top: 1px solid #f9f9f9;
+  cursor: pointer;
 }
+.day-cell:active {
+  background-color: #f5f5f5;
+}
+
 .date-num {
   font-size: 14px;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
+  margin-bottom: 8px;
 }
 .date-num.today {
-  background-color: #333;
-  color: white;
+  background-color: #ffc107;
+  color: #fff;
   font-weight: bold;
 }
-.dots {
+
+.day-amounts {
   display: flex;
-  gap: 3px;
-  margin-top: 4px;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 4px;
+  gap: 2px;
+  box-sizing: border-box;
 }
-.dot {
-  width: 4px;
+.amt {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+  display: block;
+  white-space: nowrap;
+}
+.amt.income {
+  color: #6c8fc7;
+}
+.amt.expense {
+  color: #ef5350;
+}
+
+/* 바텀 시트 스타일 */
+.bottom-sheet-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+.bottom-sheet {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 12px 20px 30px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+.handle {
+  width: 40px;
   height: 4px;
-  border-radius: 50%;
+  background: #eee;
+  border-radius: 2px;
+  margin: 0 auto 15px;
 }
-.expense-dot {
-  background-color: #ec407a;
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
-.income-dot {
-  background-color: #26a69a;
+.sheet-header h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
 }
-.list-wrapper {
-  flex: 1;
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+}
+
+
+.sheet-content {
+
   overflow-y: auto;
-  padding-bottom: 100px;
+  flex: 1;
+}
+.empty-msg {
+  text-align: center;
+  padding: 40px 0;
+  color: #ccc;
+  font-size: 14px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.list-wrapper {
+  padding: 10px 0;
 }
 .empty-state {
   text-align: center;
-  padding: 50px;
+  padding: 100px 0;
   color: #ccc;
 }
 </style>

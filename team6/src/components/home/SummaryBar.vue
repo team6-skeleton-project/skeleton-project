@@ -1,6 +1,5 @@
 <template>
   <div class="summary-bar">
-
     <div class="row">
       <span class="label expense">지출</span>
       <span class="amount">{{ expenseTotal.toLocaleString() }}</span>
@@ -10,28 +9,27 @@
       <span class="label income">수입</span>
       <span class="amount">{{ incomeTotal.toLocaleString() }}</span>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from 'vue';
 
 const props = defineProps({
-  list: Array
-})
+  list: Array,
+});
 
 const expenseTotal = computed(() => {
   return props.list
-    .filter(item => item.type === 'expense')
-    .reduce((sum, item) => sum + item.amount, 0)
-})
+    .filter((item) => item.type === 'expense')
+    .reduce((sum, item) => sum + item.amount, 0);
+});
 
 const incomeTotal = computed(() => {
   return props.list
-    .filter(item => item.type === 'income')
-    .reduce((sum, item) => sum + item.amount, 0)
-})
+    .filter((item) => item.type === 'income')
+    .reduce((sum, item) => sum + item.amount, 0);
+});
 </script>
 
 <style scoped>
@@ -40,7 +38,6 @@ const incomeTotal = computed(() => {
   border-radius: 16px;
   padding: 16px 20px;
   margin: 10px 20px;
-
 }
 
 /* 한 줄 */
