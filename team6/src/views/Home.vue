@@ -169,7 +169,8 @@ const filteredList = computed(() => {
       const d = new Date(item.date);
       return (
         item.userId === user.id &&
-        d.getFullYear() === year && d.getMonth() + 1 === month
+        d.getFullYear() === year &&
+        d.getMonth() + 1 === month
       );
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));

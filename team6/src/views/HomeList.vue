@@ -47,14 +47,14 @@ onMounted(() => {
 
 /* 월 필터링 */
 const filteredList = computed(() => {
-  if (!user) return [];   // 예외 처리
+  if (!user) return []; // 예외 처리
 
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
 
   return list.value.filter((item) => {
     const d = new Date(item.date);
-    
+
     return (
       item.userId === user.id &&
       d.getFullYear() === year &&
