@@ -3,16 +3,8 @@
     {
       "id": "u001",
       "email": "test@kb.com",
-      "password": "9999",
-      "name": "우상김"
-    },
-    {
-      "email": "123@kb.com",
       "password": "1234",
-      "name": "안녕",
-      "birth": "1234.56.78",
-      "nickname": "ㅋㅋㅋㅋ",
-      "id": "i2W2uODhiPQ"
+      "name": "감자"
     }
   ],
   "records": [
@@ -143,7 +135,7 @@
       "date": "2026-02-20",
       "type": "expense",
       "category": "교통/차량",
-      "amount": 17000,
+      "amount": 13000,
       "memo": "택시"
     },
     {

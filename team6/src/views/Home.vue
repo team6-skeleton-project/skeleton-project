@@ -87,11 +87,11 @@
           <button class="close-btn" @click="isDetailOpen = false">닫기</button>
         </div>
         <div class="sheet-content">
-          <div v-if="selectedDateRecords.length === 0" class="empty-msg">
+          <div v-if="selectedDatelist.length === 0" class="empty-msg">
             내역이 없습니다.
           </div>
           <TransactionItem
-            v-for="item in selectedDateRecords"
+            v-for="item in selectedDatelist"
             :key="item.id"
             v-bind="item"
             @click="openEditModal(item)"
@@ -130,7 +130,9 @@ const selectedRecord = ref(null);
 // --- 바텀 시트 상태 ---
 const isDetailOpen = ref(false);
 const clickedDateText = ref('');
-const selectedDateRecords = ref([]);
+const selectedDatelist = computed(() => {
+  return list.value.filter((r) => r.date === clickedDateText.value);
+});
 
 // --- 데이터 통신 ---
 const fetchData = async () => {
@@ -149,7 +151,6 @@ onMounted(() => {
 const showDailyDetail = (day) => {
   clickedDateText.value = day.fullDate;
   // 전체 데이터 중 해당 날짜 데이터만 필터링
-  selectedDateRecords.value = list.value.filter((r) => r.date === day.fullDate);
   isDetailOpen.value = true;
 };
 
@@ -193,13 +194,13 @@ const calendarDays = computed(() => {
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
-    const dailyRecords = list.value.filter((r) => r.date === dateStr);
+    const dailylist = list.value.filter((r) => r.date === dateStr);
 
-    const incomeSum = dailyRecords
+    const incomeSum = dailylist
       .filter((r) => r.type === 'income')
       .reduce((sum, r) => sum + r.amount, 0);
 
-    const expenseSum = dailyRecords
+    const expenseSum = dailylist
       .filter((r) => r.type === 'expense')
       .reduce((sum, r) => sum + r.amount, 0);
     days.push({
@@ -220,16 +221,10 @@ const openEditModal = (item) => {
   isEditModalOpen.value = true;
 };
 
-const handleModalClose = () => {
+const handleModalClose = async () => {
   isEditModalOpen.value = false;
 
-  fetchData();
-  // 바텀 시트가 열려있다면 내부 데이터도 갱신
-  if (isDetailOpen.value) {
-    selectedDateRecords.value = records.value.filter(
-      (r) => r.date === clickedDateText.value,
-    );
-  }
+  await fetchData();
 };
 </script>
 
