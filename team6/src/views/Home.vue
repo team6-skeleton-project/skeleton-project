@@ -68,13 +68,37 @@
         <div v-if="filteredList.length === 0" class="empty-state">
           내역이 없습니다.
         </div>
-        <TransactionItem
-          v-else
-          v-for="item in filteredList"
-          :key="item.id"
-          v-bind="item"
-          @click="openEditModal(item)"
-        />
+
+        <!-- 날짜 그룹 UI 추가 -->
+        <div v-else>
+          <div
+            v-for="date in sortedDates"
+            :key="date"
+            style="margin-bottom:20px;"
+          >
+            <!-- 날짜 헤더 -->
+            <div style="padding:18px 16px 8px;">
+              <div style="font-size:14px; color:#888; margin-bottom:4px;">
+                {{ formatDate(date) }}
+              </div>
+
+              <div style="font-size:20px; font-weight:700; color:#111; text-align:right;">
+                {{ getDailyTotal(groupedList[date]).toLocaleString() }}원
+              </div>
+            </div>
+
+            <!-- 거래 리스트 -->
+            <TransactionItem
+              v-for="item in groupedList[date]"
+              :key="item.id"
+              v-bind="item"
+              @click="openEditModal(item)"
+            />
+
+            <!-- 그룹 구분 -->
+            <div style="height:6px; background:#f5f5f5;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -199,6 +223,42 @@ const filteredList = computed(() => {
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
+// 날짜별 그룹
+const groupedList = computed(() => {
+  const result = {}
+
+  filteredList.value.forEach(item => {
+    const key = item.date
+    if (!result[key]) result[key] = []
+    result[key].push(item)
+  })
+
+  return result
+})
+
+// 날짜 정렬
+const sortedDates = computed(() => {
+  return Object.keys(groupedList.value).sort((a, b) => {
+    return new Date(b) - new Date(a)
+  })
+})
+
+// 날짜 포맷
+const formatDate = (dateStr) => {
+  const d = new Date(dateStr)
+  const week = ['일','월','화','수','목','금','토']
+  return `${d.getDate()}일 ${week[d.getDay()]}요일`
+}
+
+// 하루 합계
+const getDailyTotal = (items) => {
+  return items.reduce((sum, item) => {
+    return item.type === 'expense'
+      ? sum - item.amount
+      : sum + item.amount
+  }, 0)
+}
+
 const emptyDays = computed(() => {
   return new Date(
     selectedDate.value.getFullYear(),
@@ -215,7 +275,8 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    const dailylist = list.value.filter((r) => r.date === dateStr);
+    // const dailylist = list.value.filter((r) => r.date === dateStr);
+    const dailylist = filteredList.value.filter((r) => r.date === dateStr);
     const incomeSum = dailylist
       .filter((r) => r.type === 'income')
       .reduce((sum, r) => sum + r.amount, 0);
