@@ -52,30 +52,32 @@ const router = createRouter({
   ],
 });
 
-// 🌟 네비게이션 가드 수정본
-router.beforeEach((to, from, next) => {
+// ... 상단 import 부분은 동일 ...
+
+//  네비게이션 가드 최신 수정본
+router.beforeEach((to, from) => {
   const userRaw = localStorage.getItem('user');
   const user = userRaw ? JSON.parse(userRaw) : null;
 
   // 1. 로그인이 필요한 페이지인데 로그인이 안 된 경우
   if (to.matched.some((record) => record.meta.requiresAuth) && !user) {
-    // 💡 [수정 포인트]
-    // 처음 접속(from.path === '/')하거나, 주소창에 직접 쳐서 들어올 때는
-    // 알림창 없이 조용히 로그인 화면으로 리다이렉트 합니다.
+    // 처음 접속하거나 주소창 직접 입력이 아닐 때만 알림
     if (from.path !== '/' && from.name !== null) {
       alert('로그인이 필요합니다.');
     }
 
-    next('/login');
+    // ✅ next('/login') 대신 경로를 바로 return 합니다.
+    return { name: 'login' };
   }
+
   // 2. 로그인 상태인데 로그인/회원가입으로 가려는 경우
-  else if ((to.path === '/login' || to.path === '/signup') && user) {
-    next('/');
+  if ((to.path === '/login' || to.path === '/signup') && user) {
+    // ✅ '/' 경로로 리턴
+    return { name: 'home' };
   }
-  // 3. 그 외엔 통과
-  else {
-    next();
-  }
+
+  // 3. 그 외에는 아무것도 리턴하지 않거나 true를 리턴하여 통과시킵니다.
+  return true;
 });
 
 export default router;

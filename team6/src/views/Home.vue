@@ -121,7 +121,7 @@ import EditModal from './Edit.vue';
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
 
-const records = ref([]);
+const list = ref([]);
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 
@@ -131,13 +131,12 @@ const clickedDateText = ref('');
 const selectedDateRecords = ref([]);
 
 // --- 데이터 통신 ---
-const fetchRecords = async () => {
+const fetchData = async () => {
   try {
     const response = await axios.get('http://localhost:3000/records');
-    records.value = response.data;
+    list.value = response.data;
   } catch (error) {
     console.error('데이터 통신 실패:', error);
-
   }
 };
 
@@ -145,13 +144,10 @@ onMounted(() => {
   fetchData();
 });
 
-
 const showDailyDetail = (day) => {
   clickedDateText.value = day.fullDate;
   // 전체 데이터 중 해당 날짜 데이터만 필터링
-  selectedDateRecords.value = records.value.filter(
-    (r) => r.date === day.fullDate,
-  );
+  selectedDateRecords.value = list.value.filter((r) => r.date === day.fullDate);
   isDetailOpen.value = true;
 };
 
@@ -159,9 +155,7 @@ const handleMonthChange = (date) => {
   selectedDate.value = date;
 };
 
-
 // --- 필터링 로직 (목록과 달력 공통 사용) ---
-
 
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
@@ -177,7 +171,6 @@ const filteredList = computed(() => {
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
-
 
 // --- 달력 계산 로직 ---
 
@@ -198,7 +191,7 @@ const calendarDays = computed(() => {
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
-    const dailyRecords = records.value.filter((r) => r.date === dateStr);
+    const dailyRecords = list.value.filter((r) => r.date === dateStr);
 
     const incomeSum = dailyRecords
       .filter((r) => r.type === 'income')
@@ -228,14 +221,13 @@ const openEditModal = (item) => {
 const handleModalClose = () => {
   isEditModalOpen.value = false;
 
-  fetchRecords();
+  fetchData();
   // 바텀 시트가 열려있다면 내부 데이터도 갱신
   if (isDetailOpen.value) {
     selectedDateRecords.value = records.value.filter(
       (r) => r.date === clickedDateText.value,
     );
   }
-
 };
 </script>
 
@@ -256,7 +248,6 @@ const handleModalClose = () => {
   z-index: 10;
   border-bottom: 1px solid #f5f5f5;
 }
-
 
 .header-section {
   position: relative;
@@ -424,9 +415,7 @@ const handleModalClose = () => {
   cursor: pointer;
 }
 
-
 .sheet-content {
-
   overflow-y: auto;
   flex: 1;
 }
