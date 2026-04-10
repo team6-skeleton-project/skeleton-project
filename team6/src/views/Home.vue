@@ -20,6 +20,23 @@
             달력
           </button>
         </div>
+        <!-- 필터 UI -->
+        <div class="category-select-wrapper">
+          <select v-model="selectedCategory" class="category-select">
+            <option value="">전체</option>
+
+            <option
+              v-for="cat in categories"
+              :key="cat.id"
+              :value="cat.name"
+            >
+              {{ cat.name }}
+            </option>
+          </select>
+
+          <!-- 화살표 -->
+          <span class="arrow">⌄</span>
+        </div>
       </div>
     </div>
     <div class="content-body">
@@ -110,6 +127,9 @@ const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
 const list = ref([]);
 const categories = ref([]);
+
+const selectedCategory = ref('');
+
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 const isDetailOpen = ref(false);
@@ -143,7 +163,9 @@ const filteredList = computed(() => {
       return (
         item.userId === user.id &&
         d.getFullYear() === year &&
-        d.getMonth() + 1 === month
+        d.getMonth() + 1 === month &&
+
+        (!selectedCategory.value || item.category === selectedCategory.value)
       );
     })
     .map((item) => {
@@ -205,19 +227,18 @@ const calendarDays = computed(() => {
   const month = selectedDate.value.getMonth();
   const lastDate = new Date(year, month + 1, 0).getDate();
   const days = [];
+
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+    // const dailylist = list.value.filter((r) => r.date === dateStr);
     const dailylist = filteredList.value.filter((r) => r.date === dateStr);
-    days.push({
-      date: i,
-      fullDate: dateStr,
-      incomeSum: dailylist
-        .filter((r) => r.type === 'income')
-        .reduce((sum, r) => sum + r.amount, 0),
-      expenseSum: dailylist
-        .filter((r) => r.type === 'expense')
-        .reduce((sum, r) => sum + r.amount, 0),
-    });
+    const incomeSum = dailylist
+      .filter((r) => r.type === 'income')
+      .reduce((sum, r) => sum + r.amount, 0);
+    const expenseSum = dailylist
+      .filter((r) => r.type === 'expense')
+      .reduce((sum, r) => sum + r.amount, 0);
+    days.push({ date: i, fullDate: dateStr, incomeSum, expenseSum });
   }
   return days;
 });
@@ -377,5 +398,52 @@ const handleModalClose = async () => {
 .sheet-content {
   overflow-y: auto;
   flex: 1;
+}
+/* 카테고리 필터 UI */
+/* wrapper */
+.category-select-wrapper {
+  position: relative;
+  margin-left: auto;
+}
+
+/* select */
+.category-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding: 8px 32px 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #e5e5e5;
+
+  background-color: #f9f9f9;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  outline: none;
+}
+
+/* hover */
+.category-select:hover {
+  background-color: #f3f3f3;
+}
+
+/* focus */
+.category-select:focus {
+  border-color: #e6dfcf;
+  background-color: #fff;
+}
+
+/* 화살표 */
+.arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #999;
+  pointer-events: none;
 }
 </style>
