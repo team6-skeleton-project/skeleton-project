@@ -4,9 +4,7 @@
       <div class="month-header">
         <MonthSelector @changeMonth="handleMonthChange" />
       </div>
-
       <SummaryBar :list="filteredList" />
-
       <div class="toggle-section">
         <div class="view-toggle">
           <button
@@ -24,7 +22,6 @@
         </div>
       </div>
     </div>
-
     <div class="content-body">
       <div v-if="viewMode === 'calendar'" class="calendar-view">
         <div class="weekdays">
@@ -66,7 +63,6 @@
 
       <HomeList v-else :filteredList="filteredList" @openEdit="openEditModal" />
     </div>
-
     <div
       v-if="isDetailOpen"
       class="bottom-sheet-overlay"
@@ -135,8 +131,9 @@ const fetchData = async () => {
 };
 
 onMounted(fetchData);
-
-// 필터링 및 아이콘 경로 주입 로직
+/**
+ * 핵심 로직: 필터링된 리스트에 DB 아이콘 경로를 실시간 매칭
+ */
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
@@ -161,14 +158,48 @@ const filteredList = computed(() => {
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
-// 달력 날짜별 합계 계산
-const emptyDays = computed(() =>
-  new Date(
+// 날짜별 그룹
+const groupedList = computed(() => {
+  const result = {};
+
+  filteredList.value.forEach((item) => {
+    const key = item.date;
+    if (!result[key]) result[key] = [];
+    result[key].push(item);
+  });
+
+  return result;
+});
+
+// 날짜 정렬
+const sortedDates = computed(() => {
+  return Object.keys(groupedList.value).sort((a, b) => {
+    return new Date(b) - new Date(a);
+  });
+});
+
+// 날짜 포맷
+const formatDate = (dateStr) => {
+  const d = new Date(dateStr);
+  const week = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${d.getDate()}일 ${week[d.getDay()]}요일`;
+};
+
+// 하루 합계
+const getDailyTotal = (items) => {
+  return items.reduce((sum, item) => {
+    return item.type === 'expense' ? sum - item.amount : sum + item.amount;
+  }, 0);
+};
+
+const emptyDays = computed(() => {
+  return new Date(
     selectedDate.value.getFullYear(),
     selectedDate.value.getMonth(),
     1,
-  ).getDay(),
-);
+  ).getDay();
+});
+
 const calendarDays = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth();
