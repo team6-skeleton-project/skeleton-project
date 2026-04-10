@@ -11,6 +11,7 @@ defineProps({
   chartData: { type: Object, required: true },
 });
 
+// Chart.js 기본 애니메이션 설정을 유지하는 옵션
 const pieOptions = {
   responsive: true,
   maintainAspectRatio: false,
