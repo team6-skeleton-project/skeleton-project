@@ -9,7 +9,7 @@
       />
     </div>
 
-    <div class="fab">+</div>
+    <div class="fab" @click="$emit('open-add')" style="cursor: pointer">+</div>
 
     <div class="nav-item">
       <img
@@ -25,10 +25,13 @@
 <script setup>
 import { useRouter } from 'vue-router';
 
+// 🌟 부모에게 보낼 이벤트 정의
+defineEmits(['open-add']);
+
 const router = useRouter();
 
 function goToHome() {
-  router.push({ name: 'Home' });
+  router.push({ name: 'home' });
 }
 
 function goToChart() {
@@ -97,7 +100,6 @@ function goToChart() {
 
   /* 중요: 중앙 정렬 보정 */
   line-height: 0; /* 텍스트 박스의 기본 높이를 제거 */
-  padding-top: 6px; /* 폰트 특성상 위로 쏠린 기호를 아래로 미세하게 밀어줌 */
 
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }

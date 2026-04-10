@@ -66,6 +66,7 @@
           내역이 없습니다.
         </div>
         <TransactionItem
+          v-else
           v-for="item in filteredList"
           :key="item.id"
           v-bind="item"
@@ -119,6 +120,7 @@ import EditModal from './Edit.vue';
 // --- 상태 관리 ---
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
+
 const records = ref([]);
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
@@ -135,12 +137,15 @@ const fetchRecords = async () => {
     records.value = response.data;
   } catch (error) {
     console.error('데이터 통신 실패:', error);
+
   }
 };
 
-onMounted(() => fetchRecords());
+onMounted(() => {
+  fetchData();
+});
 
-// --- 날짜 클릭 상세 조회 로직 ---
+
 const showDailyDetail = (day) => {
   clickedDateText.value = day.fullDate;
   // 전체 데이터 중 해당 날짜 데이터만 필터링
@@ -154,14 +159,27 @@ const handleMonthChange = (date) => {
   selectedDate.value = date;
 };
 
+
+// --- 필터링 로직 (목록과 달력 공통 사용) ---
+
+
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
-  const prefix = `${year}-${String(month).padStart(2, '0')}`;
-  return records.value
-    .filter((item) => item.date.startsWith(prefix))
+
+  return list.value
+    .filter((item) => {
+      const d = new Date(item.date);
+      return (
+        // item.userId === 'u001' && // 👈 만약 데이터가 안 뜨면 이 줄을 주석처리하거나 확인하세요!
+        d.getFullYear() === year && d.getMonth() + 1 === month
+      );
+    })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
+
+
+// --- 달력 계산 로직 ---
 
 const emptyDays = computed(() => {
   return new Date(
@@ -179,6 +197,7 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
     const dailyRecords = records.value.filter((r) => r.date === dateStr);
 
     const incomeSum = dailyRecords
@@ -188,7 +207,6 @@ const calendarDays = computed(() => {
     const expenseSum = dailyRecords
       .filter((r) => r.type === 'expense')
       .reduce((sum, r) => sum + r.amount, 0);
-
     days.push({
       date: i,
       fullDate: dateStr,
@@ -209,6 +227,7 @@ const openEditModal = (item) => {
 
 const handleModalClose = () => {
   isEditModalOpen.value = false;
+
   fetchRecords();
   // 바텀 시트가 열려있다면 내부 데이터도 갱신
   if (isDetailOpen.value) {
@@ -216,10 +235,12 @@ const handleModalClose = () => {
       (r) => r.date === clickedDateText.value,
     );
   }
+
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 (생략) */
 .home-container {
   width: 100%;
   height: calc(100vh - 56px - 80px);
@@ -236,11 +257,11 @@ const handleModalClose = () => {
   border-bottom: 1px solid #f5f5f5;
 }
 
+
 .header-section {
   position: relative;
   padding-top: 20px;
 }
-
 .view-toggle {
   position: absolute;
   left: 20px;
@@ -251,7 +272,6 @@ const handleModalClose = () => {
   overflow: hidden;
   z-index: 11;
 }
-
 .view-toggle button {
   padding: 5px 12px;
   border: none;
@@ -261,7 +281,6 @@ const handleModalClose = () => {
   color: #888;
   cursor: pointer;
 }
-
 .view-toggle button.active {
   background-color: #e6dfcf;
   color: #333;
@@ -276,7 +295,6 @@ const handleModalClose = () => {
   display: none;
 }
 
-/* 달력 스타일 */
 .calendar-view {
   padding: 20px 5px;
 }
@@ -406,7 +424,9 @@ const handleModalClose = () => {
   cursor: pointer;
 }
 
+
 .sheet-content {
+
   overflow-y: auto;
   flex: 1;
 }
