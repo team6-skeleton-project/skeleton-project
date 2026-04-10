@@ -117,6 +117,8 @@ import SummaryBar from '@/components/home/SummaryBar.vue';
 import TransactionItem from '@/components/home/TransactionItem.vue';
 import EditModal from './Edit.vue';
 
+const user = JSON.parse(localStorage.getItem('user'));
+
 // --- 상태 관리 ---
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
@@ -165,7 +167,7 @@ const filteredList = computed(() => {
     .filter((item) => {
       const d = new Date(item.date);
       return (
-        // item.userId === 'u001' && // 👈 만약 데이터가 안 뜨면 이 줄을 주석처리하거나 확인하세요!
+        item.userId === user.id &&
         d.getFullYear() === year && d.getMonth() + 1 === month
       );
     })
