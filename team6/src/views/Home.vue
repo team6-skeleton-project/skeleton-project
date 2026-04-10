@@ -49,57 +49,22 @@
             class="day-cell"
             @click="showDailyDetail(day)"
           >
-            <span class="date-num" :class="{ today: isToday(day.fullDate) }">
-              {{ day.date }}
-            </span>
+            <span class="date-num" :class="{ today: isToday(day.fullDate) }">{{
+              day.date
+            }}</span>
             <div class="day-amounts">
-              <span v-if="day.incomeSum > 0" class="amt income">
-                {{ day.incomeSum.toLocaleString() }}
-              </span>
-              <span v-if="day.expenseSum > 0" class="amt expense">
-                {{ day.expenseSum.toLocaleString() }}
-              </span>
+              <span v-if="day.incomeSum > 0" class="amt income">{{
+                day.incomeSum.toLocaleString()
+              }}</span>
+              <span v-if="day.expenseSum > 0" class="amt expense">{{
+                day.expenseSum.toLocaleString()
+              }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else class="list-wrapper">
-        <div v-if="filteredList.length === 0" class="empty-state">
-          내역이 없습니다.
-        </div>
-
-        <!-- 날짜 그룹 UI 추가 -->
-        <div v-else>
-          <div
-            v-for="date in sortedDates"
-            :key="date"
-            style="margin-bottom:20px;"
-          >
-            <!-- 날짜 헤더 -->
-            <div style="padding:18px 16px 8px;">
-              <div style="font-size:14px; color:#888; margin-bottom:4px;">
-                {{ formatDate(date) }}
-              </div>
-
-              <div style="font-size:20px; font-weight:700; color:#111; text-align:right;">
-                {{ getDailyTotal(groupedList[date]).toLocaleString() }}원
-              </div>
-            </div>
-
-            <!-- 거래 리스트 -->
-            <TransactionItem
-              v-for="item in groupedList[date]"
-              :key="item.id"
-              v-bind="item"
-              @click="openEditModal(item)"
-            />
-
-            <!-- 그룹 구분 -->
-            <div style="height:6px; background:#f5f5f5;"></div>
-          </div>
-        </div>
-      </div>
+      <HomeList v-else :filteredList="filteredList" @openEdit="openEditModal" />
     </div>
 
     <div
@@ -138,34 +103,23 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-
 import MonthSelector from '@/components/home/MonthSelector.vue';
 import SummaryBar from '@/components/home/SummaryBar.vue';
 import TransactionItem from '@/components/home/TransactionItem.vue';
+import HomeList from '../components/home/HomeList.vue';
 import EditModal from './Edit.vue';
 
 const user = JSON.parse(localStorage.getItem('user'));
-
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
 const list = ref([]);
-const categories = ref([]); // DB 카테고리 정보 저장용
+const categories = ref([]);
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
-
 const isDetailOpen = ref(false);
 const clickedDateText = ref('');
 
-/**
- * 상세 내역 리스트 (아이콘 경로가 포함된 filteredList 재사용)
- */
-const selectedDatelist = computed(() => {
-  return filteredList.value.filter((r) => r.date === clickedDateText.value);
-});
-
-/**
- * API 데이터 호출 (내역 + 카테고리 마스터)
- */
+// 데이터 호출 및 카테고리 정보 통합
 const fetchData = async () => {
   try {
     const [recRes, incRes, expRes] = await Promise.all([
@@ -173,32 +127,19 @@ const fetchData = async () => {
       axios.get('http://localhost:3000/incomeCategory'),
       axios.get('http://localhost:3000/expenseCategory'),
     ]);
-    // 카테고리 통합
     categories.value = [...incRes.data, ...expRes.data];
     list.value = recRes.data;
   } catch (error) {
-    console.error('데이터 로딩 실패:', error);
+    console.error('Data loading failed:', error);
   }
 };
 
-onMounted(() => fetchData());
+onMounted(fetchData);
 
-const showDailyDetail = (day) => {
-  clickedDateText.value = day.fullDate;
-  isDetailOpen.value = true;
-};
-
-const handleMonthChange = (date) => {
-  selectedDate.value = date;
-};
-
-/**
- * 핵심 로직: 필터링된 리스트에 DB 아이콘 경로를 실시간 매칭
- */
+// 필터링 및 아이콘 경로 주입 로직
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
-
   return list.value
     .filter((item) => {
       const d = new Date(item.date);
@@ -209,93 +150,62 @@ const filteredList = computed(() => {
       );
     })
     .map((item) => {
-      // DB 카테고리 테이블에서 일치하는 icon 파일명 찾기
       const categoryInfo = categories.value.find(
         (c) => c.name === item.category,
       );
-      const fileName = categoryInfo ? categoryInfo.icon : '18.png';
-
       return {
         ...item,
-        iconPath: `/src/images/${fileName}`, // 자식 props 이름과 일치
+        iconPath: `/src/images/${categoryInfo ? categoryInfo.icon : '18.png'}`,
       };
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
-// 날짜별 그룹
-const groupedList = computed(() => {
-  const result = {}
-
-  filteredList.value.forEach(item => {
-    const key = item.date
-    if (!result[key]) result[key] = []
-    result[key].push(item)
-  })
-
-  return result
-})
-
-// 날짜 정렬
-const sortedDates = computed(() => {
-  return Object.keys(groupedList.value).sort((a, b) => {
-    return new Date(b) - new Date(a)
-  })
-})
-
-// 날짜 포맷
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr)
-  const week = ['일','월','화','수','목','금','토']
-  return `${d.getDate()}일 ${week[d.getDay()]}요일`
-}
-
-// 하루 합계
-const getDailyTotal = (items) => {
-  return items.reduce((sum, item) => {
-    return item.type === 'expense'
-      ? sum - item.amount
-      : sum + item.amount
-  }, 0)
-}
-
-const emptyDays = computed(() => {
-  return new Date(
+// 달력 날짜별 합계 계산
+const emptyDays = computed(() =>
+  new Date(
     selectedDate.value.getFullYear(),
     selectedDate.value.getMonth(),
     1,
-  ).getDay();
-});
-
+  ).getDay(),
+);
 const calendarDays = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth();
   const lastDate = new Date(year, month + 1, 0).getDate();
   const days = [];
-
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    // const dailylist = list.value.filter((r) => r.date === dateStr);
     const dailylist = filteredList.value.filter((r) => r.date === dateStr);
-    const incomeSum = dailylist
-      .filter((r) => r.type === 'income')
-      .reduce((sum, r) => sum + r.amount, 0);
-    const expenseSum = dailylist
-      .filter((r) => r.type === 'expense')
-      .reduce((sum, r) => sum + r.amount, 0);
-    days.push({ date: i, fullDate: dateStr, incomeSum, expenseSum });
+    days.push({
+      date: i,
+      fullDate: dateStr,
+      incomeSum: dailylist
+        .filter((r) => r.type === 'income')
+        .reduce((sum, r) => sum + r.amount, 0),
+      expenseSum: dailylist
+        .filter((r) => r.type === 'expense')
+        .reduce((sum, r) => sum + r.amount, 0),
+    });
   }
   return days;
 });
 
-const isToday = (dateString) =>
-  dateString === new Date().toISOString().split('T')[0];
-
+const selectedDatelist = computed(() =>
+  filteredList.value.filter((r) => r.date === clickedDateText.value),
+);
+const handleMonthChange = (date) => {
+  selectedDate.value = date;
+};
+const showDailyDetail = (day) => {
+  clickedDateText.value = day.fullDate;
+  isDetailOpen.value = true;
+};
+const isToday = (dateStr) => dateStr === new Date().toISOString().split('T')[0];
 const openEditModal = (item) => {
   selectedRecord.value = item;
   isEditModalOpen.value = true;
 };
-
 const handleModalClose = async () => {
   isEditModalOpen.value = false;
   await fetchData();
@@ -303,7 +213,6 @@ const handleModalClose = async () => {
 </script>
 
 <style scoped>
-/* 기존 스타일 그대로 유지 */
 .home-container {
   width: 100%;
   height: calc(100vh - 136px);
@@ -326,7 +235,6 @@ const handleModalClose = async () => {
   padding: 10px 20px;
   display: flex;
   justify-content: flex-start;
-  background-color: #fff;
 }
 .view-toggle {
   display: flex;
@@ -359,9 +267,14 @@ const handleModalClose = async () => {
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-size: 13px;
-  font-weight: bold;
   color: #bbb;
   margin-bottom: 10px;
+}
+.weekday.sunday {
+  color: #ec407a;
+}
+.weekday.saturday {
+  color: #54a0ff;
 }
 .days-grid {
   display: grid;
@@ -369,36 +282,34 @@ const handleModalClose = async () => {
   gap: 2px;
 }
 .day-cell {
+  min-height: 85px;
+  border-top: 1px solid #f9f9f9;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 85px;
-  border-top: 1px solid #f9f9f9;
+  cursor: pointer;
 }
 .date-num {
   font-size: 14px;
-  width: 26px;
-  height: 26px;
+  margin-top: 5px;
+  width: 24px;
+  height: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 50%;
 }
 .date-num.today {
-  background-color: #ffc107;
+  background: #ffc107;
   color: #fff;
+  border-radius: 50%;
 }
 .day-amounts {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  padding: 0 4px;
-  gap: 2px;
-}
-.amt {
   font-size: 10px;
-  font-weight: 600;
   text-align: right;
+  padding-right: 4px;
 }
 .amt.income {
   color: #6c8fc7;
@@ -408,10 +319,7 @@ const handleModalClose = async () => {
 }
 .bottom-sheet-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
@@ -422,9 +330,8 @@ const handleModalClose = async () => {
   max-width: 480px;
   margin: 0 auto;
   background: #fff;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 12px 20px 30px;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
   max-height: 60vh;
   display: flex;
   flex-direction: column;
@@ -436,28 +343,8 @@ const handleModalClose = async () => {
   border-radius: 2px;
   margin: 0 auto 15px;
 }
-.sheet-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
 .sheet-content {
   overflow-y: auto;
   flex: 1;
-}
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #999;
-}
-.list-wrapper {
-  padding: 10px 0;
-}
-.empty-state {
-  text-align: center;
-  padding: 100px 0;
-  color: #ccc;
 }
 </style>
