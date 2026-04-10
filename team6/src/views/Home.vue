@@ -54,6 +54,7 @@
           내역이 없습니다.
         </div>
         <TransactionItem
+          v-else
           v-for="item in filteredList"
           :key="item.id"
           v-bind="item"
@@ -74,78 +75,56 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// 팀원분들의 소중한 부품들 불러오기
+// 컴포넌트 임포트
 import MonthSelector from '@/components/home/MonthSelector.vue';
 import SummaryBar from '@/components/home/SummaryBar.vue';
 import TransactionItem from '@/components/home/TransactionItem.vue';
 import EditModal from './Edit.vue';
 
 // --- 상태 관리 ---
-const viewMode = ref('calendar'); // 초기값은 달력
-const selectedDate = ref(new Date()); // 기준 날짜
-const records = ref([]); // 전체 데이터 (서버에서 가져올 것)
+const viewMode = ref('calendar');
+const selectedDate = ref(new Date());
+const list = ref([]); // 전체 레코드 저장
 
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 
-// --- 데이터 통신 (Axios) ---
-const fetchRecords = async () => {
+// --- 데이터 가져오기 ---
+const fetchData = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/records');
-    records.value = response.data;
-  } catch (error) {
-    console.error('데이터 통신 실패:', error);
-    // 서버 없을 때를 위한 더미 데이터 (팀원분 리스트 활용)
-    records.value = [
-      {
-        id: '1001',
-        title: '돈까스',
-        date: '2026-04-07',
-        type: 'expense',
-        category: '식비',
-        amount: 12000,
-        memo: '점심 돈까스',
-      },
-      {
-        id: '1002',
-        title: '택시',
-        date: '2026-04-06',
-        type: 'expense',
-        category: '교통/차량',
-        amount: 5000,
-        memo: '택시',
-      },
-      {
-        id: '1003',
-        title: '월급',
-        date: '2026-04-01',
-        type: 'income',
-        category: '월급',
-        amount: 2000000,
-        memo: '월급 입금',
-      },
-    ];
+    const res = await axios.get('http://localhost:3000/records');
+    list.value = res.data;
+  } catch (e) {
+    console.error('데이터 가져오기 오류:', e);
   }
 };
 
-onMounted(() => fetchRecords());
+onMounted(() => {
+  fetchData();
+});
 
-// --- 로직 (Computed) ---
+// --- 월 변경 처리 ---
 const handleMonthChange = (date) => {
   selectedDate.value = date;
 };
 
-// 팀원분의 월 필터링 로직 통합
+// --- 필터링 로직 (목록과 달력 공통 사용) ---
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
-  const prefix = `${year}-${String(month).padStart(2, '0')}`;
-  return records.value
-    .filter((item) => item.date.startsWith(prefix))
+
+  return list.value
+    .filter((item) => {
+      const d = new Date(item.date);
+      return (
+        // item.userId === 'u001' && // 👈 만약 데이터가 안 뜨면 이 줄을 주석처리하거나 확인하세요!
+        d.getFullYear() === year && d.getMonth() + 1 === month
+      );
+    })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
-// 달력 날짜 계산 로직
+// --- 달력 계산 로직 ---
 const emptyDays = computed(() => {
   return new Date(
     selectedDate.value.getFullYear(),
@@ -162,7 +141,7 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    const dailyRecords = records.value.filter((r) => r.date === dateStr);
+    const dailyRecords = filteredList.value.filter((r) => r.date === dateStr);
     days.push({
       date: i,
       fullDate: dateStr,
@@ -184,35 +163,32 @@ const openEditModal = (item) => {
 
 const handleModalClose = () => {
   isEditModalOpen.value = false;
-  fetchRecords();
+  fetchData(); // 데이터 새로고침
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 (생략) */
 .home-container {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
   background-color: #fff;
 }
-
-/* 상단 영역 스타일 */
 .header-section {
   position: relative;
   padding-top: 20px;
 }
-
 .view-toggle {
   position: absolute;
   left: 20px;
-  top: 35px; /* MonthSelector 위치와 맞춤 */
+  top: 35px;
   display: flex;
   background-color: #f0ece1;
   border-radius: 20px;
   overflow: hidden;
   z-index: 10;
 }
-
 .view-toggle button {
   padding: 5px 12px;
   border: none;
@@ -222,13 +198,10 @@ const handleModalClose = () => {
   color: #888;
   cursor: pointer;
 }
-
 .view-toggle button.active {
   background-color: #e6dfcf;
   color: #333;
 }
-
-/* 달력 뷰 스타일 */
 .calendar-view {
   padding: 20px;
 }
@@ -281,8 +254,6 @@ const handleModalClose = () => {
 .income-dot {
   background-color: #26a69a;
 }
-
-/* 목록 뷰 스타일 */
 .list-wrapper {
   flex: 1;
   overflow-y: auto;

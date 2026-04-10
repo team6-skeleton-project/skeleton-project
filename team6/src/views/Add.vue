@@ -24,14 +24,14 @@
           <button
             type="button"
             :class="{ active: formData.type === 'income' }"
-            @click="formData.type = 'income'"
+            @click="changeType('income')"
           >
             수입
           </button>
           <button
             type="button"
             :class="{ active: formData.type === 'expense' }"
-            @click="formData.type = 'expense'"
+            @click="changeType('expense')"
           >
             지출
           </button>
@@ -40,15 +40,13 @@
 
       <div class="input-group">
         <label>카테고리</label>
-        <select v-model="formData.category" class="common-input">
-          <option value="" disabled>카테고리를 선택하세요</option>
-          <option v-if="formData.type === 'income'" value="월급">월급</option>
-          <option v-if="formData.type === 'income'" value="용돈">용돈</option>
-          <option v-if="formData.type === 'expense'" value="식비">식비</option>
-          <option v-if="formData.type === 'expense'" value="교통비">
-            교통비
-          </option>
-        </select>
+        <div class="category-selector-box" @click="isSheetOpen = true">
+          <span v-if="formData.category" class="selected-value">
+            {{ getCategoryIcon(formData.category) }} {{ formData.category }}
+          </span>
+          <span v-else class="placeholder">카테고리를 선택하세요</span>
+          <span class="arrow">▼</span>
+        </div>
       </div>
 
       <div class="input-group align-top">
@@ -61,25 +59,105 @@
 
       <button class="submit-btn" @click="saveRecord">저장</button>
     </div>
+
+    <Transition name="slide-up">
+      <div
+        v-if="isSheetOpen"
+        class="bottom-sheet-overlay"
+        @click.self="isSheetOpen = false"
+      >
+        <div class="bottom-sheet-content">
+          <div class="sheet-header">
+            <div class="handle"></div>
+            <h3>카테고리 선택</h3>
+          </div>
+
+          <div class="category-grid">
+            <div
+              v-for="cat in currentCategoryList"
+              :key="cat.id"
+              class="category-item"
+              :class="{ active: formData.category === cat.name }"
+              @click="selectCategory(cat.name)"
+            >
+              <div class="cat-icon-circle">
+                <span class="cat-icon">{{ getCategoryIcon(cat.name) }}</span>
+              </div>
+              <span class="cat-name">{{ cat.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-// 🌟 defineEmits 추가
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted, computed } from 'vue';
+import axios from 'axios';
 
 const formData = ref({
   amount: null,
-  date: '',
+  date: new Date().toISOString().split('T')[0], // 오늘 날짜 기본값
   type: 'expense',
   category: '',
   memo: '',
 });
 
-// 🌟 부모 컴포넌트(하단 바)에게 '나 닫아줘!'라고 신호를 보내기 위한 설정
 const emit = defineEmits(['close']);
+const isSheetOpen = ref(false);
+const incomeCategories = ref([]);
+const expenseCategories = ref([]);
 
-const saveRecord = () => {
+// 🌟 수입/지출 변경 시 카테고리 초기화
+const changeType = (type) => {
+  formData.value.type = type;
+  formData.value.category = '';
+};
+
+const selectCategory = (name) => {
+  formData.value.category = name;
+  isSheetOpen.value = false;
+};
+
+const getCategoryIcon = (name) => {
+  const iconMap = {
+    식비: '🍽️',
+    '교통/차량': '🚗',
+    월급: '💰',
+    용돈: '💸',
+    '패션/미용': '💄',
+    '마트/편의점': '🛒',
+    기타: '🎸',
+    부수입: '🧧',
+    문화생활: '🎬',
+    생활용품: '🧺',
+    '주거/통신': '🏠',
+    건강: '💊',
+  };
+  return iconMap[name] || '📍';
+};
+
+const fetchCategories = async () => {
+  try {
+    const [incRes, expRes] = await Promise.all([
+      axios.get('http://localhost:3000/incomeCategory'),
+      axios.get('http://localhost:3000/expenseCategory'),
+    ]);
+    incomeCategories.value = incRes.data;
+    expenseCategories.value = expRes.data;
+  } catch (error) {
+    console.error('카테고리 로딩 실패:', error);
+  }
+};
+
+const currentCategoryList = computed(() => {
+  return formData.value.type === 'income'
+    ? incomeCategories.value
+    : expenseCategories.value;
+});
+
+const saveRecord = async () => {
   if (
     !formData.value.amount ||
     !formData.value.date ||
@@ -88,18 +166,20 @@ const saveRecord = () => {
     alert('필수 항목을 모두 입력해주세요!');
     return;
   }
-  console.log('저장할 데이터:', formData.value);
-
-  // TODO: Axios 통신 로직
-
-  // 🌟 저장이 완료되면 자동으로 모달 창 닫기
-  emit('close');
+  try {
+    // userId 하드코딩 추가 (나중에 로그인 기능 연결 시 수정)
+    const payload = { ...formData.value, userId: 'u001' };
+    await axios.post('http://localhost:3000/records', payload);
+    alert('저장되었습니다!');
+    emit('close');
+  } catch (error) {
+    alert('서버 저장에 실패했습니다.');
+  }
 };
 
-const closeForm = () => {
-  // 🌟 X 버튼이나 배경을 누르면 부모에게 'close' 신호 보내기
-  emit('close');
-};
+const closeForm = () => emit('close');
+
+onMounted(() => fetchCategories());
 </script>
 
 <style scoped>
@@ -222,5 +302,121 @@ const closeForm = () => {
   font-weight: bold;
   cursor: pointer;
   margin-top: 10px;
+}
+/* 선택 박스 스타일 */
+.category-selector-box {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+/* 바텀 시트 오버레이 */
+/* 1. 배경 오버레이: 고정된 상태에서 투명도만 조절 (Fade 효과) */
+.bottom-sheet-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2000;
+
+  /* 배경 자체에 트랜지션 효과 부여 */
+  transition: opacity 0.3s ease;
+}
+
+/* 2. 흰색 판: 아래에서 위로 슬라이드 (Slide 효과) */
+.bottom-sheet-content {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px 20px 40px 20px;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+
+  /* 판 자체에 트랜지션 효과 부여 */
+  transition: transform 0.3s ease-out;
+}
+
+.sheet-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.handle {
+  width: 40px;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  margin-bottom: 15px;
+}
+
+/* 카테고리 그리드 레이아웃 (이미지+텍스트) */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.cat-icon-circle {
+  width: 50px;
+  height: 50px;
+  background: #f5f5f5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+
+.category-item.active .cat-icon-circle {
+  background: #ffcc00;
+}
+
+.cat-name {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 3. 애니메이션 (아래에서 위로만 슥!) */
+/* 시작(Enter) / 끝(Leave) 상태 */
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0; /* 배경은 투명해짐 */
+}
+
+.slide-up-enter-from .bottom-sheet-content,
+.slide-up-leave-to .bottom-sheet-content {
+  transform: translateY(100%); /* 흰색 판만 아래로 내려감 */
+}
+
+/* 활성화(Active) 상태 */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: opacity 0.3s ease; /* 배경 애니메이션 속도 */
+}
+
+.slide-up-enter-active .bottom-sheet-content,
+.slide-up-leave-active .bottom-sheet-content {
+  transition: transform 0.3s ease-out; /* 판 애니메이션 속도 */
 }
 </style>
