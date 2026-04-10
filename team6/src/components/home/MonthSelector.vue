@@ -78,7 +78,7 @@ const nextMonth = () => {
 
 /* 중앙 연도/월 표시 스타일 */
 .month-display {
-  font-size: 18px; /* Chart.vue의 h2 크기와 맞춤 */
+  font-size: 30px; /* Chart.vue의 h2 크기와 맞춤 */
   font-weight: 700;
   color: #333;
   min-width: 120px; /* 글자 길이에 따른 흔들림 방지 */
