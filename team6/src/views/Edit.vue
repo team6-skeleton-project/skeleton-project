@@ -42,7 +42,12 @@
         <label>카테고리</label>
         <div class="category-selector-box" @click="isSheetOpen = true">
           <span v-if="formData.category" class="selected-value">
-            {{ getCategoryIcon(formData.category) }} {{ formData.category }}
+            <img
+              :src="getSelectedCategoryIcon()"
+              class="mini-icon"
+              alt="icon"
+            />
+            {{ formData.category }}
           </span>
           <span v-else class="placeholder">카테고리를 선택하세요</span>
           <span class="arrow">▼</span>
@@ -84,7 +89,7 @@
               @click="selectCategory(cat.name)"
             >
               <div class="cat-icon-circle">
-                <span class="cat-icon">{{ getCategoryIcon(cat.name) }}</span>
+                <img :src="getImageUrl(cat.icon)" class="cat-img" alt="icon" />
               </div>
               <span class="cat-name">{{ cat.name }}</span>
             </div>
@@ -105,44 +110,51 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-// 상태 관리
+// 폼 데이터 및 상태 초기화
 const formData = ref({ ...props.record });
 const incomeCategories = ref([]);
 const expenseCategories = ref([]);
 const isSheetOpen = ref(false);
 
-// 분류 변경 시 카테고리 리셋 함수 추가
+/**
+ * 이미지 파일명에 따른 동적 URL 생성
+ */
+const getImageUrl = (fileName) => {
+  if (!fileName) return '';
+  return new URL(`../images/${fileName}`, import.meta.url).href;
+};
+
+/**
+ * 선택된 카테고리의 아이콘 경로 매칭
+ */
+const getSelectedCategoryIcon = () => {
+  const list =
+    formData.value.type === 'income'
+      ? incomeCategories.value
+      : expenseCategories.value;
+  const target = list.find((c) => c.name === formData.value.category);
+  return target ? getImageUrl(target.icon) : '';
+};
+
+/**
+ * 분류(수입/지출) 변경 시 카테고리 초기화
+ */
 const changeType = (type) => {
   formData.value.type = type;
   formData.value.category = '';
 };
 
-// 카테고리 선택
+/**
+ * 카테고리 선택 및 바텀시트 닫기
+ */
 const selectCategory = (name) => {
   formData.value.category = name;
   isSheetOpen.value = false;
 };
 
-// 아이콘 매핑 (추가된 카테고리 포함)
-const getCategoryIcon = (name) => {
-  const iconMap = {
-    식비: '🍽️',
-    '교통/차량': '🚗',
-    월급: '💰',
-    용돈: '💸',
-    '패션/미용': '💄',
-    '마트/편의점': '🛒',
-    기타: '🎸',
-    부수입: '🧧',
-    문화생활: '🎬',
-    생활용품: '🧺',
-    '주거/통신': '🏠',
-    건강: '💊',
-  };
-  return iconMap[name] || '📍';
-};
-
-// 데이터 로딩
+/**
+ * 초기 카테고리 데이터 로딩 (수입/지출 동시 요청)
+ */
 const fetchCategories = async () => {
   try {
     const [incRes, expRes] = await Promise.all([
@@ -156,13 +168,18 @@ const fetchCategories = async () => {
   }
 };
 
+/**
+ * 현재 유형(type)에 따라 바텀시트에 표시할 리스트 계산
+ */
 const currentCategoryList = computed(() => {
   return formData.value.type === 'income'
     ? incomeCategories.value
     : expenseCategories.value;
 });
 
-// 감시자
+/**
+ * props로 넘어온 원본 데이터 변경 감지 시 폼 동기화
+ */
 watch(
   () => props.record,
   (newVal) => {
@@ -173,7 +190,9 @@ watch(
 
 onMounted(() => fetchCategories());
 
-// 수정 저장
+/**
+ * 수정사항 저장 (PUT 요청)
+ */
 const saveRecord = async () => {
   if (
     !formData.value.amount ||
@@ -195,7 +214,9 @@ const saveRecord = async () => {
   }
 };
 
-// 삭제
+/**
+ * 내역 삭제 (DELETE 요청)
+ */
 const deleteRecord = async () => {
   if (confirm('삭제하시겠습니까?')) {
     try {
@@ -212,7 +233,7 @@ const closeForm = () => emit('close');
 </script>
 
 <style scoped>
-/* 메인 폼 스타일 */
+/* 모달 레이아웃 및 카드 스타일 */
 .form-overlay {
   position: fixed;
   top: 0;
@@ -236,7 +257,6 @@ const closeForm = () => emit('close');
   border-radius: 12px;
   padding: 30px 20px;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .close-btn {
   position: absolute;
@@ -248,6 +268,8 @@ const closeForm = () => emit('close');
   color: #888;
   cursor: pointer;
 }
+
+/* 입력 필드 공통 스타일 */
 .input-group {
   display: flex;
   align-items: center;
@@ -258,6 +280,7 @@ const closeForm = () => emit('close');
   font-weight: bold;
   color: #555;
 }
+
 .amount-group {
   background: white;
   border-radius: 8px;
@@ -273,6 +296,26 @@ const closeForm = () => emit('close');
   width: 70%;
   outline: none;
 }
+
+.category-selector-box {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.mini-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 .common-input {
   flex: 1;
   padding: 10px;
@@ -283,6 +326,7 @@ const closeForm = () => emit('close');
   height: 80px;
   resize: none;
 }
+
 .toggle-group {
   display: flex;
   flex: 1;
@@ -301,6 +345,8 @@ const closeForm = () => emit('close');
   font-weight: bold;
   box-shadow: inset 0 0 0 1px #555;
 }
+
+/* 하단 버튼 스타일 */
 .button-group {
   display: flex;
   gap: 10px;
@@ -327,19 +373,7 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 
-/* 카테고리 선택 박스 */
-.category-selector-box {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
-  display: flex;
-  justify-content: space-between;
-  cursor: pointer;
-}
-
-/* 🌟 바텀 시트 오버레이 (배경 고정 및 페이드 효과) */
+/* 바텀 시트 UI 및 애니메이션 */
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
@@ -351,9 +385,7 @@ const closeForm = () => emit('close');
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  transition: opacity 0.3s ease;
 }
-
 .bottom-sheet-content {
   width: 100%;
   max-width: 480px;
@@ -362,9 +394,7 @@ const closeForm = () => emit('close');
   border-top-right-radius: 24px;
   padding: 20px 20px 40px;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease-out;
 }
-
 .sheet-header {
   display: flex;
   flex-direction: column;
@@ -378,6 +408,7 @@ const closeForm = () => emit('close');
   border-radius: 2px;
   margin-bottom: 15px;
 }
+
 .category-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -391,14 +422,18 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 .cat-icon-circle {
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
   background: #f5f5f5;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+}
+.cat-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
 }
 .category-item.active .cat-icon-circle {
   background: #ffcc00;
@@ -408,24 +443,20 @@ const closeForm = () => emit('close');
   color: #666;
 }
 
-/* 🌟 애니메이션 분리 핵심 */
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0; /* 배경만 투명해짐 */
-}
-
-.slide-up-enter-from .bottom-sheet-content,
-.slide-up-leave-to .bottom-sheet-content {
-  transform: translateY(100%); /* 판만 아래로 */
-}
-
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition: opacity 0.3s ease;
 }
-
 .slide-up-enter-active .bottom-sheet-content,
 .slide-up-leave-active .bottom-sheet-content {
   transition: transform 0.3s ease-out;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+}
+.slide-up-enter-from .bottom-sheet-content,
+.slide-up-leave-to .bottom-sheet-content {
+  transform: translateY(100%);
 }
 </style>
