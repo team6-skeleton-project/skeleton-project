@@ -182,77 +182,95 @@
   "incomeCategory": [
     {
       "id": "1",
-      "name": "월급"
+      "name": "월급",
+      "icon": "1.png"
     },
     {
       "id": "2",
-      "name": "부수입"
+      "name": "부수입",
+      "icon": "2.png"
     },
     {
       "id": "3",
-      "name": "용돈"
+      "name": "용돈",
+      "icon": "3.png"
     },
     {
       "id": "4",
-      "name": "상여"
+      "name": "상여",
+      "icon": "4.png"
     },
     {
       "id": "5",
-      "name": "금융소득"
+      "name": "금융소득",
+      "icon": "5.png"
     },
     {
       "id": "6",
-      "name": "기타"
+      "name": "기타",
+      "icon": "6.png"
     }
   ],
   "expenseCategory": [
     {
       "id": "1",
-      "name": "식비"
+      "name": "식비",
+      "icon": "7.png"
     },
     {
       "id": "2",
-      "name": "교통/차량"
+      "name": "교통/차량",
+      "icon": "8.png"
     },
     {
       "id": "3",
-      "name": "문화생활"
+      "name": "문화생활",
+      "icon": "9.png"
     },
     {
       "id": "4",
-      "name": "마트/편의점"
+      "name": "마트/편의점",
+      "icon": "10.png"
     },
     {
       "id": "5",
-      "name": "패션/미용"
+      "name": "패션/미용",
+      "icon": "11.png"
     },
     {
       "id": "6",
-      "name": "생활용품"
+      "name": "생활용품",
+      "icon": "12.png"
     },
     {
       "id": "7",
-      "name": "주거/통신"
+      "name": "주거/통신",
+      "icon": "13.png"
     },
     {
       "id": "8",
-      "name": "건강"
+      "name": "건강",
+      "icon": "14.png"
     },
     {
       "id": "9",
-      "name": "교육"
+      "name": "교육",
+      "icon": "15.png"
     },
     {
       "id": "10",
-      "name": "경조사/회비"
+      "name": "경조사/회비",
+      "icon": "16.png"
     },
     {
       "id": "11",
-      "name": "부모님"
+      "name": "부모님",
+      "icon": "17.png"
     },
     {
       "id": "12",
-      "name": "기타"
+      "name": "기타",
+      "icon": "18.png"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
