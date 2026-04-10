@@ -43,7 +43,7 @@ function goToMyPage() {
   /* 로고 이미지 배경이 흰색일 경우를 대비해 배경색을 흰색으로 변경 추천 */
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .logo-area {
