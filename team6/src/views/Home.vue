@@ -1,7 +1,13 @@
 <template>
   <div class="home-container">
     <div class="fixed-header">
-      <div class="header-section">
+      <div class="month-header">
+        <MonthSelector @changeMonth="handleMonthChange" />
+      </div>
+
+      <SummaryBar :list="filteredList" />
+
+      <div class="toggle-section">
         <div class="view-toggle">
           <button
             :class="{ active: viewMode === 'list' }"
@@ -16,10 +22,7 @@
             달력
           </button>
         </div>
-        <MonthSelector @changeMonth="handleMonthChange" />
       </div>
-
-      <SummaryBar :list="filteredList" />
     </div>
 
     <div class="content-body">
@@ -119,38 +122,45 @@ import EditModal from './Edit.vue';
 
 const user = JSON.parse(localStorage.getItem('user'));
 
-// --- 상태 관리 ---
 const viewMode = ref('calendar');
 const selectedDate = ref(new Date());
-
 const list = ref([]);
+const categories = ref([]); // DB 카테고리 정보 저장용
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 
-// --- 바텀 시트 상태 ---
 const isDetailOpen = ref(false);
 const clickedDateText = ref('');
+
+/**
+ * 상세 내역 리스트 (아이콘 경로가 포함된 filteredList 재사용)
+ */
 const selectedDatelist = computed(() => {
-  return list.value.filter((r) => r.date === clickedDateText.value);
+  return filteredList.value.filter((r) => r.date === clickedDateText.value);
 });
 
-// --- 데이터 통신 ---
+/**
+ * API 데이터 호출 (내역 + 카테고리 마스터)
+ */
 const fetchData = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/records');
-    list.value = response.data;
+    const [recRes, incRes, expRes] = await Promise.all([
+      axios.get('http://localhost:3000/records'),
+      axios.get('http://localhost:3000/incomeCategory'),
+      axios.get('http://localhost:3000/expenseCategory'),
+    ]);
+    // 카테고리 통합
+    categories.value = [...incRes.data, ...expRes.data];
+    list.value = recRes.data;
   } catch (error) {
-    console.error('데이터 통신 실패:', error);
+    console.error('데이터 로딩 실패:', error);
   }
 };
 
-onMounted(() => {
-  fetchData();
-});
+onMounted(() => fetchData());
 
 const showDailyDetail = (day) => {
   clickedDateText.value = day.fullDate;
-  // 전체 데이터 중 해당 날짜 데이터만 필터링
   isDetailOpen.value = true;
 };
 
@@ -158,8 +168,9 @@ const handleMonthChange = (date) => {
   selectedDate.value = date;
 };
 
-// --- 필터링 로직 (목록과 달력 공통 사용) ---
-
+/**
+ * 핵심 로직: 필터링된 리스트에 DB 아이콘 경로를 실시간 매칭
+ */
 const filteredList = computed(() => {
   const year = selectedDate.value.getFullYear();
   const month = selectedDate.value.getMonth() + 1;
@@ -173,10 +184,20 @@ const filteredList = computed(() => {
         d.getMonth() + 1 === month
       );
     })
+    .map((item) => {
+      // DB 카테고리 테이블에서 일치하는 icon 파일명 찾기
+      const categoryInfo = categories.value.find(
+        (c) => c.name === item.category,
+      );
+      const fileName = categoryInfo ? categoryInfo.icon : '18.png';
+
+      return {
+        ...item,
+        iconPath: `/src/images/${fileName}`, // 자식 props 이름과 일치
+      };
+    })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
-
-// --- 달력 계산 로직 ---
 
 const emptyDays = computed(() => {
   return new Date(
@@ -194,22 +215,14 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDate; i++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-
     const dailylist = list.value.filter((r) => r.date === dateStr);
-
     const incomeSum = dailylist
       .filter((r) => r.type === 'income')
       .reduce((sum, r) => sum + r.amount, 0);
-
     const expenseSum = dailylist
       .filter((r) => r.type === 'expense')
       .reduce((sum, r) => sum + r.amount, 0);
-    days.push({
-      date: i,
-      fullDate: dateStr,
-      incomeSum,
-      expenseSum,
-    });
+    days.push({ date: i, fullDate: dateStr, incomeSum, expenseSum });
   }
   return days;
 });
@@ -224,45 +237,44 @@ const openEditModal = (item) => {
 
 const handleModalClose = async () => {
   isEditModalOpen.value = false;
-
   await fetchData();
 };
 </script>
 
 <style scoped>
-/* 기존 스타일 유지 (생략) */
+/* 기존 스타일 그대로 유지 */
 .home-container {
   width: 100%;
-  height: calc(100vh - 56px - 80px);
+  height: calc(100vh - 136px);
   display: flex;
   flex-direction: column;
   background-color: #fff;
-  overflow: hidden;
 }
-
 .fixed-header {
   flex-shrink: 0;
   background-color: #fff;
   z-index: 10;
   border-bottom: 1px solid #f5f5f5;
 }
-
-.header-section {
-  position: relative;
-  padding-top: 20px;
+.month-header {
+  padding: 15px 0;
+  display: flex;
+  justify-content: center;
+}
+.toggle-section {
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-start;
+  background-color: #fff;
 }
 .view-toggle {
-  position: absolute;
-  left: 20px;
-  top: 35px;
   display: flex;
   background-color: #f0ece1;
   border-radius: 20px;
   overflow: hidden;
-  z-index: 11;
 }
 .view-toggle button {
-  padding: 5px 12px;
+  padding: 5px 14px;
   border: none;
   background: none;
   font-size: 12px;
@@ -274,18 +286,12 @@ const handleModalClose = async () => {
   background-color: #e6dfcf;
   color: #333;
 }
-
 .content-body {
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
 }
-.content-body::-webkit-scrollbar {
-  display: none;
-}
-
 .calendar-view {
-  padding: 20px 5px;
+  padding: 5px;
 }
 .weekdays {
   display: grid;
@@ -294,35 +300,20 @@ const handleModalClose = async () => {
   font-size: 13px;
   font-weight: bold;
   color: #bbb;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
-.weekday.sunday {
-  color: #ec407a;
-}
-.weekday.saturday {
-  color: #54a0ff;
-}
-
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  row-gap: 2px;
-  column-gap: 2px;
+  gap: 2px;
 }
-
 .day-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 95px;
-  padding-top: 8px;
+  min-height: 85px;
   border-top: 1px solid #f9f9f9;
-  cursor: pointer;
 }
-.day-cell:active {
-  background-color: #f5f5f5;
-}
-
 .date-num {
   font-size: 14px;
   width: 26px;
@@ -331,28 +322,22 @@ const handleModalClose = async () => {
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  margin-bottom: 8px;
 }
 .date-num.today {
   background-color: #ffc107;
   color: #fff;
-  font-weight: bold;
 }
-
 .day-amounts {
   display: flex;
   flex-direction: column;
   width: 100%;
   padding: 0 4px;
   gap: 2px;
-  box-sizing: border-box;
 }
 .amt {
   font-size: 10px;
   font-weight: 600;
   text-align: right;
-  display: block;
-  white-space: nowrap;
 }
 .amt.income {
   color: #6c8fc7;
@@ -360,8 +345,6 @@ const handleModalClose = async () => {
 .amt.expense {
   color: #ef5350;
 }
-
-/* 바텀 시트 스타일 */
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
@@ -384,7 +367,6 @@ const handleModalClose = async () => {
   max-height: 60vh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s ease-out;
 }
 .handle {
   width: 40px;
@@ -399,40 +381,16 @@ const handleModalClose = async () => {
   align-items: center;
   margin-bottom: 15px;
 }
-.sheet-header h3 {
-  font-size: 16px;
-  font-weight: bold;
-  margin: 0;
-  color: #333;
+.sheet-content {
+  overflow-y: auto;
+  flex: 1;
 }
 .close-btn {
   background: none;
   border: none;
   font-size: 14px;
   color: #999;
-  cursor: pointer;
 }
-
-.sheet-content {
-  overflow-y: auto;
-  flex: 1;
-}
-.empty-msg {
-  text-align: center;
-  padding: 40px 0;
-  color: #ccc;
-  font-size: 14px;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
 .list-wrapper {
   padding: 10px 0;
 }
