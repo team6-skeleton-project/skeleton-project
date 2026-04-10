@@ -22,11 +22,11 @@
       </div>
 
       <div class="field">
-        <label class="label"><span>*</span>닉네임 변경</label>
+        <label class="label"><span>*</span>이름 변경</label>
         <input
           v-model="newNickname"
           class="input-capsule"
-          placeholder="변경할 닉네임"
+          placeholder="변경할 이름"
         />
       </div>
 
@@ -45,19 +45,17 @@ import axios from 'axios';
 
 const router = useRouter();
 
-// 🌟 Store 대신 직접 유저 정보를 관리합니다.
 const user = ref(null);
 const newPassword = ref('');
 const newNickname = ref('');
 
 onMounted(() => {
-  // 1. 로컬 스토리지에서 유저 정보를 가져옵니다.
   const savedUser = localStorage.getItem('user');
   if (savedUser) {
     user.value = JSON.parse(savedUser);
-    newNickname.value = user.value.name || ''; // db.json에 'name'으로 저장되어 있을 거예요.
+    // db.json의 필드명(name)에 맞춰 초기값 세팅
+    newNickname.value = user.value.name || '';
   } else {
-    // 유저 정보가 없으면 로그인으로 튕겨냅니다.
     router.push('/login');
   }
 });
@@ -66,10 +64,9 @@ const save = async () => {
   try {
     await axios.patch(`http://localhost:3000/users/${user.value.id}`, {
       password: newPassword.value || user.value.password,
-      name: newNickname.value, // db.json 필드명에 맞춰 'name'으로 수정
+      name: newNickname.value,
     });
 
-    // 로컬 스토리지 데이터도 갱신해줘야 화면에 즉시 반영됩니다.
     const updatedUser = { ...user.value, name: newNickname.value };
     localStorage.setItem('user', JSON.stringify(updatedUser));
     user.value = updatedUser;
@@ -81,27 +78,38 @@ const save = async () => {
 };
 
 const logout = () => {
-  localStorage.removeItem('user'); // 로컬 스토리지 비우기
+  localStorage.removeItem('user');
   router.push('/login');
 };
 </script>
 
 <style scoped>
-/* 기존 스타일 그대로 유지 (생략) */
 .container {
+  /* 🌟 MainLayout과 완벽하게 규격 일치 */
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding-top: 56px;
-} /* 헤더 가림 방지 */
+  box-sizing: border-box;
+}
+
 .header {
+  /* 공통 헤더를 대신하는 마이페이지 전용 상단 바 */
   height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid #f0f0f0;
   position: relative;
+  background-color: #fff;
+  flex-shrink: 0; /* 헤더 크기 고정 */
 }
+
 .back-btn {
   position: absolute;
   left: 16px;
@@ -109,40 +117,54 @@ const logout = () => {
   border: none;
   font-size: 20px;
   cursor: pointer;
+  color: #333;
 }
+
 .header-title {
   font-weight: 700;
+  font-size: 16px;
 }
+
 .content {
+  /* 홈 화면과 동일한 좌우 여백(24px) 적용 */
   padding: 30px 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 .user-info {
   text-align: center;
   margin-bottom: 30px;
 }
+
 .avatar {
   font-size: 50px;
   margin-bottom: 10px;
 }
+
 .email {
   color: #888;
   font-size: 14px;
 }
+
 .field {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
+
 .label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   display: block;
+  color: #333;
 }
+
 .label span {
   color: #ffcc00;
+  margin-right: 4px;
 }
+
 .input-capsule {
   width: 100%;
   height: 48px;
@@ -150,10 +172,21 @@ const logout = () => {
   border: 1px solid #e0e0e0;
   padding: 0 20px;
   outline: none;
+  box-sizing: border-box;
+  font-size: 15px;
+  background-color: #fafafa;
 }
+
+.input-capsule:focus {
+  border-color: #ffcc00;
+  background-color: #fff;
+}
+
 .footer {
-  margin-top: auto;
+  margin-top: auto; /* 버튼들을 하단으로 밀어냄 */
+  padding-top: 20px;
 }
+
 .btn-main {
   width: 100%;
   height: 54px;
@@ -162,9 +195,16 @@ const logout = () => {
   background: #ffcc00;
   color: white;
   font-weight: 700;
+  font-size: 16px;
   margin-bottom: 12px;
   cursor: pointer;
+  transition: background 0.2s;
 }
+
+.btn-main:active {
+  background: #e6b800;
+}
+
 .btn-sub {
   width: 100%;
   height: 54px;
@@ -172,6 +212,8 @@ const logout = () => {
   border: 1px solid #eee;
   background: #fafafa;
   color: #999;
+  font-size: 15px;
+  margin-bottom: 20px;
   cursor: pointer;
 }
 </style>

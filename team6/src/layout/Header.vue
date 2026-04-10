@@ -2,7 +2,7 @@
   <header class="header">
     <div class="logo-area" @click="$router.push('/')">
       <img
-        src="@/assets/HeaderLogo.png"
+        src="@/images/HeaderLogo.png"
         alt="Don Touch 로고"
         class="header-logo"
       />
@@ -54,7 +54,7 @@ function goToMyPage() {
 
 .header-logo {
   /* 🌟 헤더 높이(56px)에 맞춰 적절한 크기로 조절 */
-  height: 55px;
+  height: 40px;
   width: auto;
   object-fit: contain;
 }
