@@ -25,11 +25,7 @@
           <select v-model="selectedCategory" class="category-select">
             <option value="">전체</option>
 
-            <option
-              v-for="cat in categories"
-              :key="cat.id"
-              :value="cat.name"
-            >
+            <option v-for="cat in categories" :key="cat.id" :value="cat.name">
               {{ cat.name }}
             </option>
           </select>
@@ -88,12 +84,19 @@
       <div class="bottom-sheet">
         <div class="handle"></div>
         <div class="sheet-header">
-          <h3>{{ clickedDateText }} 내역</h3>
-          <button class="close-btn" @click="isDetailOpen = false">닫기</button>
+          <div class="header-title-group">
+            <span class="calendar-icon">📅</span>
+            <h3>{{ clickedDateText }} 내역</h3>
+          </div>
+          <button class="close-x-btn" @click="isDetailOpen = false">
+            <span class="x-icon">✕</span>
+          </button>
         </div>
+
         <div class="sheet-content">
-          <div v-if="selectedDatelist.length === 0" class="empty-msg">
-            내역이 없습니다.
+          <div v-if="selectedDatelist.length === 0" class="empty-msg-v2">
+            <div class="empty-icon-mini">🔍</div>
+            <p>이날은 기록된 내역이 없어요</p>
           </div>
           <TransactionItem
             v-for="item in selectedDatelist"
@@ -164,7 +167,6 @@ const filteredList = computed(() => {
         item.userId === user.id &&
         d.getFullYear() === year &&
         d.getMonth() + 1 === month &&
-
         (!selectedCategory.value || item.category === selectedCategory.value)
       );
     })
@@ -445,5 +447,79 @@ const handleModalClose = async () => {
   font-size: 12px;
   color: #999;
   pointer-events: none;
+}
+/* 바텀시트 헤더 전체 디자인 */
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-icon {
+  font-size: 18px;
+}
+
+.sheet-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+  margin: 0;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 🌟 닫기 버튼 (X 아이콘) 스타일 */
+.close-x-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5; /* 연한 회색 원형 배경 */
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.x-icon {
+  font-size: 16px;
+  color: #888;
+  font-weight: bold;
+}
+
+.close-x-btn:hover {
+  background-color: #eee;
+}
+
+.close-x-btn:active {
+  transform: scale(0.9);
+  background-color: #e0e0e0;
+}
+
+/* 상세 내역 없을 때 디자인 */
+.empty-msg-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  color: #bbb;
+}
+
+.empty-icon-mini {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.empty-msg-v2 p {
+  font-size: 14px;
+  font-weight: 500;
 }
 </style>

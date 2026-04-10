@@ -3,6 +3,12 @@
 </template>
 
 <style>
+/* 🌟 반드시 최상단으로 옮겨주세요! */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+:root {
+  --font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+}
 html,
 body {
   margin: 0;
@@ -10,6 +16,8 @@ body {
   width: 100%;
   height: 100%;
   background-color: #e0e0e0;
+  font-family: var(--font-family);
+  margin: 0;
 }
 
 #app {
