@@ -128,18 +128,11 @@
 import { ref, defineEmits, onMounted, computed } from 'vue';
 import axios from 'axios';
 
-<<<<<<< Updated upstream
-// 폼 입력 데이터 초기값 설정
-const formData = ref({
-  amount: null,
-  date: new Date().toISOString().split('T')[0],
-=======
 // --- 상태 관리 ---
 const formData = ref({
   amount: null,
   title: '',
   date: new Date().toISOString().split('T')[0], // 오늘 날짜 기본값
->>>>>>> Stashed changes
   type: 'expense',
   category: '',
   memo: '',
@@ -181,7 +174,6 @@ const resetAmount = () => {
   displayAmount.value = '';
 };
 
-<<<<<<< Updated upstream
 /**
  * DB에 정의된 파일명을 기반으로 이미지의 동적 URL 생성
  */
@@ -205,8 +197,7 @@ const getSelectedCategoryIcon = () => {
 /**
  * 수입/지출 분류 변경 시 카테고리 선택 초기화
  */
-=======
->>>>>>> Stashed changes
+
 const changeType = (type) => {
   formData.value.type = type;
   formData.value.category = '';
@@ -274,11 +265,19 @@ onMounted(() => fetchCategories());
 </script>
 
 <style scoped>
-<<<<<<< Updated upstream
-/* 레이아웃 및 카드 스타일 */
-=======
 /* 1. 기본 레이아웃 및 오버레이 */
->>>>>>> Stashed changes
+
+.selected-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-icon {
+  width: 20px; /* 작은 사이즈로 고정 */
+  height: 20px;
+  object-fit: contain;
+}
 .form-overlay {
   position: fixed;
   top: 0;
@@ -303,10 +302,8 @@ onMounted(() => fetchCategories());
   border-radius: 20px;
   padding: 35px 20px 25px;
   box-sizing: border-box;
-<<<<<<< Updated upstream
-=======
+
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
->>>>>>> Stashed changes
 }
 
 .close-btn {
@@ -320,36 +317,16 @@ onMounted(() => fetchCategories());
   cursor: pointer;
 }
 
-<<<<<<< Updated upstream
-/* 입력 그룹 공통 스타일 */
-.input-group {
-=======
 /* 2. 🌟 금액 입력창 & 퀵 버튼 UI */
 .amount-group-container {
->>>>>>> Stashed changes
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 25px;
 }
-<<<<<<< Updated upstream
-.input-group label {
-  width: 70px;
-  font-weight: bold;
-  color: #555;
-}
-
-.amount-group {
-  background-color: white;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 30px;
-=======
 
 .amount-input-wrapper {
   display: flex;
->>>>>>> Stashed changes
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
@@ -358,13 +335,6 @@ onMounted(() => fetchCategories());
   padding: 15px 20px;
   transition: all 0.2s ease;
 }
-
-<<<<<<< Updated upstream
-.amount-input {
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-=======
 .amount-input-wrapper:focus-within {
   border-color: #ffcc00;
   box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.1);
@@ -375,77 +345,12 @@ onMounted(() => fetchCategories());
   font-size: 26px;
   font-weight: 800;
   color: #333;
->>>>>>> Stashed changes
+
   outline: none;
   width: 75%;
   background: transparent;
 }
 
-<<<<<<< Updated upstream
-.mini-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.category-selector-box {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-
-.common-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-.memo-input {
-  height: 80px;
-  resize: none;
-}
-
-.toggle-group {
-  display: flex;
-  flex: 1;
-  gap: 10px;
-}
-.toggle-group button {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.toggle-group button.active {
-  border-color: #555;
-  font-weight: bold;
-  box-shadow: inset 0 0 0 1px #555;
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 15px;
-  background-color: #ffcc00;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* 바텀 시트 스타일 */
-=======
 .currency {
   font-size: 18px;
   color: #555;
@@ -567,7 +472,6 @@ onMounted(() => fetchCategories());
 }
 
 /* 5. 바텀 시트 및 애니메이션 (기존 유지) */
->>>>>>> Stashed changes
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
@@ -579,10 +483,7 @@ onMounted(() => fetchCategories());
   align-items: flex-end;
   justify-content: center;
   z-index: 2000;
-<<<<<<< Updated upstream
-=======
   transition: opacity 0.3s ease;
->>>>>>> Stashed changes
 }
 
 .bottom-sheet-content {
@@ -593,10 +494,6 @@ onMounted(() => fetchCategories());
   border-top-right-radius: 24px;
   padding: 20px 20px 40px;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
-<<<<<<< Updated upstream
-}
-
-=======
   transition: transform 0.3s ease-out;
 }
 
@@ -615,7 +512,6 @@ onMounted(() => fetchCategories());
   margin-bottom: 15px;
 }
 
->>>>>>> Stashed changes
 .category-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -630,15 +526,9 @@ onMounted(() => fetchCategories());
 }
 
 .cat-icon-circle {
-<<<<<<< Updated upstream
-  width: 54px;
-  height: 54px;
-  background: #f5f5f5;
-=======
   width: 50px;
   height: 50px;
   background: #f8f8f8;
->>>>>>> Stashed changes
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -659,9 +549,6 @@ onMounted(() => fetchCategories());
   color: #666;
 }
 
-<<<<<<< Updated upstream
-/* 애니메이션 */
-=======
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
@@ -670,7 +557,6 @@ onMounted(() => fetchCategories());
 .slide-up-leave-to .bottom-sheet-content {
   transform: translateY(100%);
 }
->>>>>>> Stashed changes
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition: opacity 0.3s ease;
@@ -678,16 +564,5 @@ onMounted(() => fetchCategories());
 .slide-up-enter-active .bottom-sheet-content,
 .slide-up-leave-active .bottom-sheet-content {
   transition: transform 0.3s ease-out;
-<<<<<<< Updated upstream
-}
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-}
-.slide-up-enter-from .bottom-sheet-content,
-.slide-up-leave-to .bottom-sheet-content {
-  transform: translateY(100%);
-=======
->>>>>>> Stashed changes
 }
 </style>

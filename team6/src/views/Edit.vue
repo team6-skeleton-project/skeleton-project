@@ -18,7 +18,7 @@
             class="currency"
             @click="focusAmountInput"
             style="cursor: pointer"
-            >원</span
+            >원 ✏️</span
           >
         </div>
 
@@ -139,11 +139,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-<<<<<<< Updated upstream
-// 폼 데이터 및 상태 초기화
-=======
 // --- 상태 관리 ---
->>>>>>> Stashed changes
 const formData = ref({ ...props.record });
 const displayAmount = ref('');
 const isSheetOpen = ref(false);
@@ -151,16 +147,37 @@ const incomeCategories = ref([]);
 const expenseCategories = ref([]);
 const amountInputRef = ref(null);
 
-// --- 유틸리티 및 핸들러 ---
+// --- 유틸리티 및 데이터 로직 ---
+
+// 이미지 URL 생성 (에러 해결용)
+const getImageUrl = (fileName) => {
+  if (!fileName) return '';
+  return new URL(`../images/${fileName}`, import.meta.url).href;
+};
+
+// 선택된 카테고리 아이콘 반환 (에러 해결용)
+const getSelectedCategoryIcon = () => {
+  if (!formData.value.category) return '';
+  const list =
+    formData.value.type === 'income'
+      ? incomeCategories.value
+      : expenseCategories.value;
+  const target = list.find((c) => c.name === formData.value.category);
+  return target ? getImageUrl(target.icon) : '';
+};
+
+// 숫자 포맷팅 (콤마)
 const formatNumber = (val) => {
   if (!val && val !== 0) return '';
   return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
+// 연필 클릭 시 포커스
 const focusAmountInput = () => {
   if (amountInputRef.value) amountInputRef.value.focus();
 };
 
+// 금액 입력 핸들러
 const handleAmountInput = (e) => {
   const rawValue = e.target.value.replace(/\D/g, '');
   formData.value.amount = rawValue ? Number(rawValue) : null;
@@ -177,72 +194,16 @@ const resetAmount = () => {
   displayAmount.value = '';
 };
 
-<<<<<<< Updated upstream
-/**
- * 이미지 파일명에 따른 동적 URL 생성
- */
-const getImageUrl = (fileName) => {
-  if (!fileName) return '';
-  return new URL(`../images/${fileName}`, import.meta.url).href;
-};
-
-/**
- * 선택된 카테고리의 아이콘 경로 매칭
- */
-const getSelectedCategoryIcon = () => {
-  const list =
-    formData.value.type === 'income'
-      ? incomeCategories.value
-      : expenseCategories.value;
-  const target = list.find((c) => c.name === formData.value.category);
-  return target ? getImageUrl(target.icon) : '';
-};
-
-/**
- * 분류(수입/지출) 변경 시 카테고리 초기화
- */
-=======
->>>>>>> Stashed changes
 const changeType = (type) => {
   formData.value.type = type;
   formData.value.category = '';
 };
 
-<<<<<<< Updated upstream
-/**
- * 카테고리 선택 및 바텀시트 닫기
- */
-=======
->>>>>>> Stashed changes
 const selectCategory = (name) => {
   formData.value.category = name;
   isSheetOpen.value = false;
 };
 
-<<<<<<< Updated upstream
-/**
- * 초기 카테고리 데이터 로딩 (수입/지출 동시 요청)
- */
-=======
-const getCategoryIcon = (name) => {
-  const iconMap = {
-    식비: '🍽️',
-    '교통/차량': '🚗',
-    월급: '💰',
-    용돈: '💸',
-    '패션/미용': '💄',
-    '마트/편의점': '🛒',
-    기타: '🎸',
-    부수입: '🧧',
-    문화생활: '🎬',
-    생활용품: '🧺',
-    '주거/통신': '🏠',
-    건강: '💊',
-  };
-  return iconMap[name] || '📍';
-};
-
->>>>>>> Stashed changes
 const fetchCategories = async () => {
   try {
     const [incRes, expRes] = await Promise.all([
@@ -256,22 +217,13 @@ const fetchCategories = async () => {
   }
 };
 
-/**
- * 현재 유형(type)에 따라 바텀시트에 표시할 리스트 계산
- */
 const currentCategoryList = computed(() => {
   return formData.value.type === 'income'
     ? incomeCategories.value
     : expenseCategories.value;
 });
 
-<<<<<<< Updated upstream
-/**
- * props로 넘어온 원본 데이터 변경 감지 시 폼 동기화
- */
-=======
 // --- 감시자 및 초기화 ---
->>>>>>> Stashed changes
 watch(
   () => props.record,
   (newVal) => {
@@ -281,19 +233,14 @@ watch(
   { deep: true },
 );
 
-onMounted(() => {
-  fetchCategories();
+onMounted(async () => {
+  await fetchCategories();
   if (formData.value.amount !== null) {
     displayAmount.value = formatNumber(formData.value.amount);
   }
 });
 
-<<<<<<< Updated upstream
-/**
- * 수정사항 저장 (PUT 요청)
- */
-=======
->>>>>>> Stashed changes
+// 수정 저장
 const saveRecord = async () => {
   if (
     !formData.value.title ||
@@ -316,12 +263,7 @@ const saveRecord = async () => {
   }
 };
 
-<<<<<<< Updated upstream
-/**
- * 내역 삭제 (DELETE 요청)
- */
-=======
->>>>>>> Stashed changes
+// 삭제
 const deleteRecord = async () => {
   if (confirm('삭제하시겠습니까?')) {
     try {
@@ -338,11 +280,7 @@ const closeForm = () => emit('close');
 </script>
 
 <style scoped>
-<<<<<<< Updated upstream
-/* 모달 레이아웃 및 카드 스타일 */
-=======
 /* 1. 기본 레이아웃 */
->>>>>>> Stashed changes
 .form-overlay {
   position: fixed;
   top: 0;
@@ -367,10 +305,7 @@ const closeForm = () => emit('close');
   border-radius: 20px;
   padding: 35px 20px 25px;
   box-sizing: border-box;
-<<<<<<< Updated upstream
-=======
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
->>>>>>> Stashed changes
 }
 
 .close-btn {
@@ -384,10 +319,7 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 
-<<<<<<< Updated upstream
-/* 입력 필드 공통 스타일 */
-=======
-/* 2. 🌟 금액 입력 및 퀵 버튼 스타일 */
+/* 2. 금액 입력 UI */
 .amount-group-container {
   display: flex;
   flex-direction: column;
@@ -458,8 +390,7 @@ const closeForm = () => emit('close');
   margin-left: auto;
 }
 
-/* 3. 공통 입력 및 토글 */
->>>>>>> Stashed changes
+/* 3. 공통 입력 요소 */
 .input-group {
   display: flex;
   align-items: center;
@@ -471,49 +402,6 @@ const closeForm = () => emit('close');
   color: #666;
   font-size: 14px;
 }
-<<<<<<< Updated upstream
-
-.amount-group {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 30px;
-  justify-content: space-between;
-}
-.amount-input {
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  width: 70%;
-  outline: none;
-}
-
-.category-selector-box {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-.mini-icon {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.common-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-=======
 .common-input,
 .category-selector-box {
   flex: 1;
@@ -529,16 +417,30 @@ const closeForm = () => emit('close');
   justify-content: space-between;
   cursor: pointer;
   color: #333;
+  align-items: center;
 }
+
+/* 선택된 카테고리 아이콘 스타일 */
+.selected-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mini-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
 .placeholder {
   color: #aaa;
->>>>>>> Stashed changes
 }
 .memo-input {
   height: 70px;
   resize: none;
 }
 
+/* 4. 토글 및 버튼 그룹 */
 .toggle-group {
   display: flex;
   flex: 1;
@@ -560,10 +462,6 @@ const closeForm = () => emit('close');
   border-color: #555;
 }
 
-<<<<<<< Updated upstream
-/* 하단 버튼 스타일 */
-=======
->>>>>>> Stashed changes
 .button-group {
   display: flex;
   gap: 10px;
@@ -592,11 +490,7 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 
-<<<<<<< Updated upstream
-/* 바텀 시트 UI 및 애니메이션 */
-=======
-/* 4. 바텀 시트 및 애니메이션 */
->>>>>>> Stashed changes
+/* 5. 바텀 시트 및 애니메이션 */
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
@@ -607,11 +501,8 @@ const closeForm = () => emit('close');
   display: flex;
   align-items: flex-end;
   justify-content: center;
-<<<<<<< Updated upstream
-=======
   z-index: 2000;
   transition: opacity 0.3s ease;
->>>>>>> Stashed changes
 }
 .bottom-sheet-content {
   width: 100%;
@@ -621,6 +512,7 @@ const closeForm = () => emit('close');
   border-top-right-radius: 24px;
   padding: 20px 20px 40px;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-out;
 }
 .sheet-header {
   display: flex;
@@ -635,7 +527,6 @@ const closeForm = () => emit('close');
   border-radius: 2px;
   margin-bottom: 15px;
 }
-
 .category-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -649,23 +540,17 @@ const closeForm = () => emit('close');
   cursor: pointer;
 }
 .cat-icon-circle {
-<<<<<<< Updated upstream
-  width: 54px;
-  height: 54px;
-  background: #f5f5f5;
-=======
   width: 50px;
   height: 50px;
   background: #f8f8f8;
->>>>>>> Stashed changes
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .cat-img {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 .category-item.active .cat-icon-circle {
@@ -676,8 +561,7 @@ const closeForm = () => emit('close');
   color: #666;
 }
 
-<<<<<<< Updated upstream
-=======
+/* 애니메이션 */
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
@@ -686,7 +570,6 @@ const closeForm = () => emit('close');
 .slide-up-leave-to .bottom-sheet-content {
   transform: translateY(100%);
 }
->>>>>>> Stashed changes
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition: opacity 0.3s ease;
@@ -694,13 +577,5 @@ const closeForm = () => emit('close');
 .slide-up-enter-active .bottom-sheet-content,
 .slide-up-leave-active .bottom-sheet-content {
   transition: transform 0.3s ease-out;
-}
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-}
-.slide-up-enter-from .bottom-sheet-content,
-.slide-up-leave-to .bottom-sheet-content {
-  transform: translateY(100%);
 }
 </style>
