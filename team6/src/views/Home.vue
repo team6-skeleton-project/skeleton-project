@@ -4,7 +4,7 @@
       <div class="month-header">
         <MonthSelector @changeMonth="handleMonthChange" />
       </div>
-      <SummaryBar :list="filteredList" />
+      <SummaryBar :list="finalFilteredList" />
       <div class="toggle-section">
         <div class="view-toggle">
           <button
@@ -20,21 +20,23 @@
             달력
           </button>
         </div>
-        <!-- 필터 UI -->
+
         <div class="category-select-wrapper">
           <select v-model="selectedCategory" class="category-select">
             <option value="">전체</option>
-
-            <option v-for="cat in categories" :key="cat.id" :value="cat.name">
+            <option
+              v-for="cat in recordStore.categories"
+              :key="cat.id"
+              :value="cat.name"
+            >
               {{ cat.name }}
             </option>
           </select>
-
-          <!-- 화살표 -->
           <span class="arrow">⌄</span>
         </div>
       </div>
     </div>
+
     <div class="content-body">
       <div v-if="viewMode === 'calendar'" class="calendar-view">
         <div class="weekdays">
@@ -54,7 +56,7 @@
             class="day-cell empty"
           ></div>
           <div
-            v-for="day in calendarDays"
+            v-for="day in recordStore.calendarDays"
             :key="day.date"
             class="day-cell"
             @click="showDailyDetail(day)"
@@ -74,8 +76,13 @@
         </div>
       </div>
 
-      <HomeList v-else :filteredList="filteredList" @openEdit="openEditModal" />
+      <HomeList
+        v-else
+        :filteredList="finalFilteredList"
+        @openEdit="openEditModal"
+      />
     </div>
+
     <div
       v-if="isDetailOpen"
       class="bottom-sheet-overlay"
@@ -118,155 +125,81 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import { useRecordStore } from '@/stores/recordStore';
 import MonthSelector from '@/components/home/MonthSelector.vue';
 import SummaryBar from '@/components/home/SummaryBar.vue';
 import TransactionItem from '@/components/home/TransactionItem.vue';
 import HomeList from '../components/home/HomeList.vue';
 import EditModal from './Edit.vue';
 
-const user = JSON.parse(localStorage.getItem('user'));
+// 중앙 저장소 스토어 활성화
+const recordStore = useRecordStore();
+
+// 컴포넌트 로컬 상태 관리 (UI 제어용)
 const viewMode = ref('calendar');
-const selectedDate = ref(new Date());
-const list = ref([]);
-const categories = ref([]);
-
 const selectedCategory = ref('');
-
 const isEditModalOpen = ref(false);
 const selectedRecord = ref(null);
 const isDetailOpen = ref(false);
 const clickedDateText = ref('');
 
-// 데이터 호출 및 카테고리 정보 통합
-const fetchData = async () => {
-  try {
-    const [recRes, incRes, expRes] = await Promise.all([
-      axios.get('http://localhost:3000/records'),
-      axios.get('http://localhost:3000/incomeCategory'),
-      axios.get('http://localhost:3000/expenseCategory'),
-    ]);
-    categories.value = [...incRes.data, ...expRes.data];
-    list.value = recRes.data;
-  } catch (error) {
-    console.error('Data loading failed:', error);
+// 컴포넌트 마운트 시 데이터가 로드되지 않았다면 스토어 액션 실행
+onMounted(() => {
+  if (!recordStore.loaded) {
+    recordStore.fetchData();
   }
-};
-
-onMounted(fetchData);
-/**
- * 핵심 로직: 필터링된 리스트에 DB 아이콘 경로를 실시간 매칭
- */
-const filteredList = computed(() => {
-  const year = selectedDate.value.getFullYear();
-  const month = selectedDate.value.getMonth() + 1;
-  return list.value
-    .filter((item) => {
-      const d = new Date(item.date);
-      return (
-        item.userId === user.id &&
-        d.getFullYear() === year &&
-        d.getMonth() + 1 === month &&
-        (!selectedCategory.value || item.category === selectedCategory.value)
-      );
-    })
-    .map((item) => {
-      const categoryInfo = categories.value.find(
-        (c) => c.name === item.category,
-      );
-      return {
-        ...item,
-        iconPath: `/src/images/${categoryInfo ? categoryInfo.icon : '18.png'}`,
-      };
-    })
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
-// 날짜별 그룹
-const groupedList = computed(() => {
-  const result = {};
-
-  filteredList.value.forEach((item) => {
-    const key = item.date;
-    if (!result[key]) result[key] = [];
-    result[key].push(item);
-  });
-
-  return result;
-});
-
-// 날짜 정렬
-const sortedDates = computed(() => {
-  return Object.keys(groupedList.value).sort((a, b) => {
-    return new Date(b) - new Date(a);
+// 스토어의 전역 필터링 리스트에 로컬 카테고리 필터 추가 적용
+const finalFilteredList = computed(() => {
+  return recordStore.filteredList.filter((item) => {
+    return !selectedCategory.value || item.category === selectedCategory.value;
   });
 });
 
-// 날짜 포맷
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr);
-  const week = ['일', '월', '화', '수', '목', '금', '토'];
-  return `${d.getDate()}일 ${week[d.getDay()]}요일`;
-};
-
-// 하루 합계
-const getDailyTotal = (items) => {
-  return items.reduce((sum, item) => {
-    return item.type === 'expense' ? sum - item.amount : sum + item.amount;
-  }, 0);
-};
-
+// 현재 선택된 월의 1일 시작 요일 계산 (빈 칸 생성용)
 const emptyDays = computed(() => {
   return new Date(
-    selectedDate.value.getFullYear(),
-    selectedDate.value.getMonth(),
+    recordStore.selectedDate.getFullYear(),
+    recordStore.selectedDate.getMonth(),
     1,
   ).getDay();
 });
 
-const calendarDays = computed(() => {
-  const year = selectedDate.value.getFullYear();
-  const month = selectedDate.value.getMonth();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-  const days = [];
-
-  for (let i = 1; i <= lastDate; i++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    // const dailylist = list.value.filter((r) => r.date === dateStr);
-    const dailylist = filteredList.value.filter((r) => r.date === dateStr);
-    const incomeSum = dailylist
-      .filter((r) => r.type === 'income')
-      .reduce((sum, r) => sum + r.amount, 0);
-    const expenseSum = dailylist
-      .filter((r) => r.type === 'expense')
-      .reduce((sum, r) => sum + r.amount, 0);
-    days.push({ date: i, fullDate: dateStr, incomeSum, expenseSum });
-  }
-  return days;
-});
-
+// 바텀 시트용: 선택된 특정 날짜의 내역만 필터링
 const selectedDatelist = computed(() =>
-  filteredList.value.filter((r) => r.date === clickedDateText.value),
+  finalFilteredList.value.filter((r) => r.date === clickedDateText.value),
 );
+
+// 월 변경 시 스토어의 기준 날짜 상태 업데이트
 const handleMonthChange = (date) => {
-  selectedDate.value = date;
+  recordStore.setSelectedDate(date);
 };
+
+// 특정 날짜 클릭 시 상세 내역 바텀 시트 노출
 const showDailyDetail = (day) => {
   clickedDateText.value = day.fullDate;
   isDetailOpen.value = true;
 };
+
+// 오늘 날짜 여부 판단
 const isToday = (dateStr) => dateStr === new Date().toISOString().split('T')[0];
+
+// 수정 모달 노출 및 선택된 데이터 전달
 const openEditModal = (item) => {
   selectedRecord.value = item;
   isEditModalOpen.value = true;
 };
+
+// 모달 닫기 시 스토어 데이터를 다시 로드하여 최신 상태 유지
 const handleModalClose = async () => {
   isEditModalOpen.value = false;
-  await fetchData();
+  await recordStore.fetchData();
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 코드와 동일하여 생략 (그대로 사용하시면 됩니다) */
 .home-container {
   width: 100%;
   height: calc(100vh - 136px);
@@ -401,44 +334,31 @@ const handleModalClose = async () => {
   overflow-y: auto;
   flex: 1;
 }
-/* 카테고리 필터 UI */
-/* wrapper */
 .category-select-wrapper {
   position: relative;
   margin-left: auto;
 }
-
-/* select */
 .category-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
   padding: 8px 32px 8px 14px;
   border-radius: 20px;
   border: 1px solid #e5e5e5;
-
   background-color: #f9f9f9;
   color: #333;
   font-size: 13px;
   font-weight: 600;
-
   cursor: pointer;
   outline: none;
 }
-
-/* hover */
 .category-select:hover {
   background-color: #f3f3f3;
 }
-
-/* focus */
 .category-select:focus {
   border-color: #e6dfcf;
   background-color: #fff;
 }
-
-/* 화살표 */
 .arrow {
   position: absolute;
   right: 10px;
@@ -448,7 +368,6 @@ const handleModalClose = async () => {
   color: #999;
   pointer-events: none;
 }
-/* 바텀시트 헤더 전체 디자인 */
 .sheet-header {
   display: flex;
   justify-content: space-between;
@@ -456,17 +375,14 @@ const handleModalClose = async () => {
   margin-bottom: 20px;
   padding: 0 4px;
 }
-
 .header-title-group {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
 .calendar-icon {
   font-size: 18px;
 }
-
 .sheet-header h3 {
   font-size: 18px;
   font-weight: 800;
@@ -474,37 +390,30 @@ const handleModalClose = async () => {
   margin: 0;
   font-family: 'Pretendard', sans-serif;
 }
-
-/* 🌟 닫기 버튼 (X 아이콘) 스타일 */
 .close-x-btn {
   width: 32px;
   height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f5f5f5; /* 연한 회색 원형 배경 */
+  background-color: #f5f5f5;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .x-icon {
   font-size: 16px;
   color: #888;
   font-weight: bold;
 }
-
 .close-x-btn:hover {
   background-color: #eee;
 }
-
 .close-x-btn:active {
   transform: scale(0.9);
   background-color: #e0e0e0;
 }
-
-/* 상세 내역 없을 때 디자인 */
 .empty-msg-v2 {
   display: flex;
   flex-direction: column;
@@ -512,12 +421,10 @@ const handleModalClose = async () => {
   padding: 40px 0;
   color: #bbb;
 }
-
 .empty-icon-mini {
   font-size: 30px;
   margin-bottom: 10px;
 }
-
 .empty-msg-v2 p {
   font-size: 14px;
   font-weight: 500;
