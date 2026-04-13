@@ -33,7 +33,9 @@ export const useRecordStore = defineStore('record', {
           );
           return {
             ...item,
-            iconPath: `/src/images/${categoryInfo ? categoryInfo.icon : '18.png'}`,
+            iconPath: categoryInfo
+              ? new URL(`../images/${categoryInfo.icon}`, import.meta.url).href
+              : new URL(`../images/18.png`, import.meta.url).href,
           };
         })
         .sort((a, b) => new Date(b.date) - new Date(a.date));

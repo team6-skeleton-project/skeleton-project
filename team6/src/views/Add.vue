@@ -178,6 +178,7 @@ const resetAmount = () => {
 
 const getImageUrl = (fileName) => {
   if (!fileName) return '';
+  // src/images 폴더를 가리키는 동적 URL 생성
   return new URL(`../images/${fileName}`, import.meta.url).href;
 };
 
