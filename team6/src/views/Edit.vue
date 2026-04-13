@@ -132,12 +132,14 @@
 <script setup>
 import { ref, defineEmits, defineProps, watch, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { useRecordStore } from '@/stores/recordStore'; // 🌟 Pinia 스토어 임포트
 
 const props = defineProps({
   record: { type: Object, required: true },
 });
 
 const emit = defineEmits(['close']);
+const recordStore = useRecordStore(); // 🌟 스토어 활성화
 
 // --- 상태 관리 ---
 const formData = ref({ ...props.record });
@@ -149,13 +151,11 @@ const amountInputRef = ref(null);
 
 // --- 유틸리티 및 데이터 로직 ---
 
-// 이미지 URL 생성 (에러 해결용)
 const getImageUrl = (fileName) => {
   if (!fileName) return '';
   return new URL(`../images/${fileName}`, import.meta.url).href;
 };
 
-// 선택된 카테고리 아이콘 반환 (에러 해결용)
 const getSelectedCategoryIcon = () => {
   if (!formData.value.category) return '';
   const list =
@@ -166,18 +166,15 @@ const getSelectedCategoryIcon = () => {
   return target ? getImageUrl(target.icon) : '';
 };
 
-// 숫자 포맷팅 (콤마)
 const formatNumber = (val) => {
   if (!val && val !== 0) return '';
   return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
-// 연필 클릭 시 포커스
 const focusAmountInput = () => {
   if (amountInputRef.value) amountInputRef.value.focus();
 };
 
-// 금액 입력 핸들러
 const handleAmountInput = (e) => {
   const rawValue = e.target.value.replace(/\D/g, '');
   formData.value.amount = rawValue ? Number(rawValue) : null;
@@ -240,7 +237,9 @@ onMounted(async () => {
   }
 });
 
-// 수정 저장
+/**
+ * 수정 저장 (Pinia 연동)
+ */
 const saveRecord = async () => {
   if (
     !formData.value.title ||
@@ -256,6 +255,10 @@ const saveRecord = async () => {
       `http://localhost:3000/records/${formData.value.id}`,
       formData.value,
     );
+
+    // 🌟 수정 성공 후 Pinia 스토어 갱신 (홈 화면 실시간 반영)
+    await recordStore.fetchData();
+
     alert('수정되었습니다! ✨');
     emit('close');
   } catch (error) {
@@ -263,11 +266,17 @@ const saveRecord = async () => {
   }
 };
 
-// 삭제
+/**
+ * 삭제 (Pinia 연동)
+ */
 const deleteRecord = async () => {
   if (confirm('삭제하시겠습니까?')) {
     try {
       await axios.delete(`http://localhost:3000/records/${formData.value.id}`);
+
+      // 🌟 삭제 성공 후 Pinia 스토어 갱신 (목록에서 즉시 제거)
+      await recordStore.fetchData();
+
       alert('삭제되었습니다. 🗑️');
       emit('close');
     } catch (error) {
@@ -280,7 +289,7 @@ const closeForm = () => emit('close');
 </script>
 
 <style scoped>
-/* 1. 기본 레이아웃 */
+/* 기존 스타일 그대로 유지 (Add.vue와 스타일 통일됨) */
 .form-overlay {
   position: fixed;
   top: 0;
@@ -296,7 +305,6 @@ const closeForm = () => emit('close');
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
-
 .form-card {
   position: relative;
   width: 90%;
@@ -307,7 +315,6 @@ const closeForm = () => emit('close');
   box-sizing: border-box;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
-
 .close-btn {
   position: absolute;
   top: 1px;
@@ -318,15 +325,12 @@ const closeForm = () => emit('close');
   color: #aaa;
   cursor: pointer;
 }
-
-/* 2. 금액 입력 UI */
 .amount-group-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 25px;
 }
-
 .amount-input-wrapper {
   display: flex;
   justify-content: space-between;
@@ -337,12 +341,10 @@ const closeForm = () => emit('close');
   padding: 15px 20px;
   transition: all 0.2s ease;
 }
-
 .amount-input-wrapper:focus-within {
   border-color: #ffcc00;
   box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.1);
 }
-
 .amount-input {
   border: none;
   font-size: 26px;
@@ -352,19 +354,16 @@ const closeForm = () => emit('close');
   width: 75%;
   background: transparent;
 }
-
 .currency {
   font-size: 18px;
   color: #555;
   font-weight: bold;
 }
-
 .quick-amount-btns {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
-
 .quick-amount-btns button {
   padding: 8px 14px;
   border-radius: 10px;
@@ -376,21 +375,17 @@ const closeForm = () => emit('close');
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .quick-amount-btns button:hover {
   border-color: #ffcc00;
   background: #fffdf0;
   color: #333;
 }
-
 .quick-amount-btns .reset-btn {
   background: #fff5f5;
   color: #ff4d4f;
   border-color: #ffe3e3;
   margin-left: auto;
 }
-
-/* 3. 공통 입력 요소 */
 .input-group {
   display: flex;
   align-items: center;
@@ -419,8 +414,6 @@ const closeForm = () => emit('close');
   color: #333;
   align-items: center;
 }
-
-/* 선택된 카테고리 아이콘 스타일 */
 .selected-value {
   display: flex;
   align-items: center;
@@ -431,7 +424,6 @@ const closeForm = () => emit('close');
   height: 22px;
   object-fit: contain;
 }
-
 .placeholder {
   color: #aaa;
 }
@@ -439,8 +431,6 @@ const closeForm = () => emit('close');
   height: 70px;
   resize: none;
 }
-
-/* 4. 토글 및 버튼 그룹 */
 .toggle-group {
   display: flex;
   flex: 1;
@@ -461,7 +451,6 @@ const closeForm = () => emit('close');
   color: #fff;
   border-color: #555;
 }
-
 .button-group {
   display: flex;
   gap: 10px;
@@ -489,8 +478,6 @@ const closeForm = () => emit('close');
   font-weight: bold;
   cursor: pointer;
 }
-
-/* 5. 바텀 시트 및 애니메이션 */
 .bottom-sheet-overlay {
   position: fixed;
   top: 0;
@@ -560,8 +547,6 @@ const closeForm = () => emit('close');
   font-size: 12px;
   color: #666;
 }
-
-/* 애니메이션 */
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
