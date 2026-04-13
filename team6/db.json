@@ -178,6 +178,26 @@
       "category": "기타",
       "amount": 5000,
       "memo": "복권"
+    },
+    {
+      "amount": 50000,
+      "title": "버스 타기",
+      "date": "2026-04-13",
+      "type": "expense",
+      "category": "교통/차량",
+      "memo": "",
+      "userId": "u001",
+      "id": "iMncAPvagec"
+    },
+    {
+      "amount": 100000,
+      "title": "택시",
+      "date": "2026-04-13",
+      "type": "expense",
+      "category": "교통/차량",
+      "memo": "",
+      "userId": "u001",
+      "id": "eBlqVjX6sNo"
     }
   ],
   "incomeCategory": [

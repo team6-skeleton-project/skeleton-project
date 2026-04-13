@@ -185,9 +185,10 @@ const doughnutData = computed(() => {
 /**
  * 컴포넌트 마운트 시 전체 거래 기록 API 호출
  */
+const API_URL = import.meta.env.VITE_API_URL;
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:3000/records');
+    const response = await axios.get(`${API_URL}/records`);
     allRecords.value = response.data;
     loaded.value = true;
   } catch (error) {

@@ -45,6 +45,9 @@ import axios from 'axios';
 
 const router = useRouter();
 
+// 🌟 1. 환경 변수에서 API 주소 가져오기
+const API_URL = import.meta.env.VITE_API_URL;
+
 const user = ref(null);
 const newPassword = ref('');
 const newNickname = ref('');
@@ -53,7 +56,6 @@ onMounted(() => {
   const savedUser = localStorage.getItem('user');
   if (savedUser) {
     user.value = JSON.parse(savedUser);
-    // db.json의 필드명(name)에 맞춰 초기값 세팅
     newNickname.value = user.value.name || '';
   } else {
     router.push('/login');
@@ -62,7 +64,8 @@ onMounted(() => {
 
 const save = async () => {
   try {
-    await axios.patch(`http://localhost:3000/users/${user.value.id}`, {
+    // 🌟 2. localhost:3000을 API_URL 변수로 교체 (백틱 사용)
+    await axios.patch(`${API_URL}/users/${user.value.id}`, {
       password: newPassword.value || user.value.password,
       name: newNickname.value,
     });
@@ -72,7 +75,9 @@ const save = async () => {
     user.value = updatedUser;
 
     alert('수정되었습니다.');
+    newPassword.value = ''; // 수정 후 비밀번호 입력창 비우기
   } catch (err) {
+    console.error(err);
     alert('수정 실패! 서버를 확인하세요.');
   }
 };

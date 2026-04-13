@@ -37,9 +37,13 @@ const email = ref('');
 const password = ref('');
 const router = useRouter();
 
+// 1. 환경 변수에서 API 주소 가져오기
+const API_URL = import.meta.env.VITE_API_URL;
+
 const handleLogin = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/users');
+    // 2. localhost:3000을 배포용 API_URL 변수로 교체 (백틱 사용 필수)
+    const res = await axios.get(`${API_URL}/users`);
     const users = res.data;
     const loggedInUser = users.find(
       (u) =>
@@ -54,6 +58,7 @@ const handleLogin = async () => {
       alert('아이디 또는 비밀번호가 일치하지 않습니다.');
     }
   } catch (err) {
+    console.error(err);
     alert('서버 확인 필요!');
   }
 };

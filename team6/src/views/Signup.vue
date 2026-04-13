@@ -70,6 +70,10 @@ import axios from 'axios';
 
 const router = useRouter();
 const passwordConfirm = ref('');
+
+// 🌟 1. 환경 변수에서 API 주소 가져오기
+const API_URL = import.meta.env.VITE_API_URL;
+
 const form = ref({
   email: '',
   password: '',
@@ -87,17 +91,21 @@ const handleSignup = async () => {
   }
 
   try {
+    // 🌟 2. 이메일 중복 확인 주소 수정 (localhost:3000 -> API_URL)
     const checkRes = await axios.get(
-      `http://localhost:3000/users?email=${form.value.email}`,
+      `${API_URL}/users?email=${form.value.email}`,
     );
     if (checkRes.data.length > 0) {
       return alert('이미 가입된 이메일입니다.');
     }
 
-    await axios.post('http://localhost:3000/users', form.value);
+    // 🌟 3. 회원 정보 저장 주소 수정 (localhost:3000 -> API_URL)
+    await axios.post(`${API_URL}/users`, form.value);
+
     alert('가입을 환영합니다! 로그인 해주세요.');
     router.push('/login');
   } catch (err) {
+    console.error(err);
     alert('서버 오류 발생');
   }
 };
