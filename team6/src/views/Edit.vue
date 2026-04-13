@@ -132,14 +132,17 @@
 <script setup>
 import { ref, defineEmits, defineProps, watch, onMounted, computed } from 'vue';
 import axios from 'axios';
-import { useRecordStore } from '@/stores/recordStore'; // 🌟 Pinia 스토어 임포트
+import { useRecordStore } from '@/stores/recordStore';
 
 const props = defineProps({
   record: { type: Object, required: true },
 });
 
 const emit = defineEmits(['close']);
-const recordStore = useRecordStore(); // 🌟 스토어 활성화
+const recordStore = useRecordStore();
+
+// 1. 환경 변수에서 API 주소 가져오기
+const API_URL = import.meta.env.VITE_API_URL;
 
 // --- 상태 관리 ---
 const formData = ref({ ...props.record });
@@ -201,11 +204,12 @@ const selectCategory = (name) => {
   isSheetOpen.value = false;
 };
 
+//2. 카테고리 로딩 주소 수정
 const fetchCategories = async () => {
   try {
     const [incRes, expRes] = await Promise.all([
-      axios.get('http://localhost:3000/incomeCategory'),
-      axios.get('http://localhost:3000/expenseCategory'),
+      axios.get(`${API_URL}/incomeCategory`),
+      axios.get(`${API_URL}/expenseCategory`),
     ]);
     incomeCategories.value = incRes.data;
     expenseCategories.value = expRes.data;
@@ -238,7 +242,7 @@ onMounted(async () => {
 });
 
 /**
- * 수정 저장 (Pinia 연동)
+ * 수정 저장
  */
 const saveRecord = async () => {
   if (
@@ -251,12 +255,9 @@ const saveRecord = async () => {
     return;
   }
   try {
-    await axios.put(
-      `http://localhost:3000/records/${formData.value.id}`,
-      formData.value,
-    );
+    // localhost:3000을 ${API_URL}로 변경
+    await axios.put(`${API_URL}/records/${formData.value.id}`, formData.value);
 
-    // 🌟 수정 성공 후 Pinia 스토어 갱신 (홈 화면 실시간 반영)
     await recordStore.fetchData();
 
     alert('수정되었습니다! ✨');
@@ -267,14 +268,14 @@ const saveRecord = async () => {
 };
 
 /**
- * 삭제 (Pinia 연동)
+ * 삭제
  */
 const deleteRecord = async () => {
   if (confirm('삭제하시겠습니까?')) {
     try {
-      await axios.delete(`http://localhost:3000/records/${formData.value.id}`);
+      // localhost:3000을 ${API_URL}로 변경
+      await axios.delete(`${API_URL}/records/${formData.value.id}`);
 
-      // 🌟 삭제 성공 후 Pinia 스토어 갱신 (목록에서 즉시 제거)
       await recordStore.fetchData();
 
       alert('삭제되었습니다. 🗑️');

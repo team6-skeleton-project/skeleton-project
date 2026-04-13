@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
+// 🌟 1. 환경 변수에서 배포된 백엔드 주소 가져오기
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const useRecordStore = defineStore('record', {
   state: () => ({
     list: [],
@@ -11,7 +14,6 @@ export const useRecordStore = defineStore('record', {
   }),
 
   getters: {
-    // 현재 선택된 연/월과 사용자 ID에 맞는 내역 필터링 및 아이콘 매칭
     filteredList: (state) => {
       const year = state.selectedDate.getFullYear();
       const month = state.selectedDate.getMonth() + 1;
@@ -37,7 +39,6 @@ export const useRecordStore = defineStore('record', {
         .sort((a, b) => new Date(b.date) - new Date(a.date));
     },
 
-    // 달력 각 날짜에 표시할 수입/지출 합계 계산
     calendarDays: (state) => {
       const year = state.selectedDate.getFullYear();
       const month = state.selectedDate.getMonth();
@@ -65,10 +66,11 @@ export const useRecordStore = defineStore('record', {
     // 서버로부터 전체 레코드 및 카테고리 정보 로드
     async fetchData() {
       try {
+        // 🌟 2. localhost:3000을 ${API_URL}로 교체 (백틱 처리 확인!)
         const [recRes, incRes, expRes] = await Promise.all([
-          axios.get('http://localhost:3000/records'),
-          axios.get('http://localhost:3000/incomeCategory'),
-          axios.get('http://localhost:3000/expenseCategory'),
+          axios.get(`${API_URL}/records`),
+          axios.get(`${API_URL}/incomeCategory`),
+          axios.get(`${API_URL}/expenseCategory`),
         ]);
         this.list = recRes.data;
         this.categories = [...incRes.data, ...expRes.data];
@@ -78,7 +80,6 @@ export const useRecordStore = defineStore('record', {
       }
     },
 
-    // 사용자가 선택한 기준 날짜 업데이트
     setSelectedDate(date) {
       this.selectedDate = date;
     },

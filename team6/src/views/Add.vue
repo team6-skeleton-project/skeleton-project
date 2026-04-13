@@ -199,12 +199,12 @@ const selectCategory = (name) => {
   formData.value.category = name;
   isSheetOpen.value = false;
 };
-
+const API_URL = import.meta.env.VITE_API_URL; //상단에 변수 선언
 const fetchCategories = async () => {
   try {
     const [incRes, expRes] = await Promise.all([
-      axios.get('http://localhost:3000/incomeCategory'),
-      axios.get('http://localhost:3000/expenseCategory'),
+      axios.get(`${API_URL}/incomeCategory`),
+      axios.get(`${API_URL}/expenseCategory`),
     ]);
     incomeCategories.value = incRes.data;
     expenseCategories.value = expRes.data;
@@ -233,8 +233,9 @@ const saveRecord = async () => {
     return;
   }
   try {
-    const payload = { ...formData.value, userId: 'u001' };
-    await axios.post('http://localhost:3000/records', payload);
+    const user = JSON.parse(localStorage.getItem('user')); // 로컬스토리지에서 실제 유저 ID 가져오기
+    const payload = { ...formData.value, userId: user.id };
+    await axios.post(`${API_URL}/records`, payload);
 
     // 🌟 저장 성공 후 Pinia 스토어 데이터 갱신 (화면 실시간 반영용)
     await recordStore.fetchData();
